@@ -10,6 +10,8 @@ use App\Http\Controllers\ChapterPageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscoveryController;
 use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\CommentController;
 
 Route::prefix('v1')->group(function () {
 
@@ -68,4 +70,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/genres/{genre_name}', [DiscoveryController::class, 'byGenre']);
     });
 
+        // --- LAYANAN PENCARIAN (Tugas Adelia) ---
+    Route::get('/search', [SearchController::class, 'search']);
+
+            // --- LAYANAN KOMENTAR (Tugas Adelia) ---
+        Route::post('/chapters/{chapter_id}/comments', [CommentController::class, 'store']);
+        Route::get('/chapters/{chapter_id}/comments', [CommentController::class, 'index']);
+        Route::patch('/comments/{id}', [CommentController::class, 'update']);
+        Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+        
 });
