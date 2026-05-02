@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ComicController;
 use App\Http\Controllers\ChapterController;
 use App\Http\Controllers\ChapterPageController;
+use App\Http\Controllers\DashboardController;
 
 Route::prefix('v1')->group(function () {
 
@@ -44,6 +45,11 @@ Route::prefix('v1')->group(function () {
             Route::post('/chapters/{chapter_id}/pages', [ChapterPageController::class, 'bulkUpload']);
             Route::put('/chapters/{chapter_id}/pages/reorder', [ChapterPageController::class, 'reorder']);
         });
+
+        // --- LAYANAN DASHBOARD ADMIN ---
+Route::middleware('admin')->group(function () {
+    Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
+});
 
     });
 
