@@ -8,6 +8,8 @@ use App\Http\Controllers\ComicController;
 use App\Http\Controllers\ChapterController;
 use App\Http\Controllers\ChapterPageController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiscoveryController;
+use App\Http\Controllers\LibraryController;
 
 Route::prefix('v1')->group(function () {
 
@@ -47,10 +49,23 @@ Route::prefix('v1')->group(function () {
         });
 
         // --- LAYANAN DASHBOARD ADMIN ---
-Route::middleware('admin')->group(function () {
-    Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
-});
+        Route::middleware('admin')->group(function () {
+            Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
+        });
 
+        // --- LAYANAN PUSTAKA PRIBADI (Tugas Fifah) ---
+        Route::prefix('library')->group(function () {
+            Route::get('/favorites', [LibraryController::class, 'getFavorites']);
+            Route::post('/favorites', [LibraryController::class, 'addFavorite']);
+            Route::delete('/favorites/{comic_id}', [LibraryController::class, 'removeFavorite']);
+        });
+
+    });
+
+    // --- LAYANAN EKSPLORASI (Tugas Fifah) ---
+    Route::prefix('discovery')->group(function () {
+        Route::get('/popular', [DiscoveryController::class, 'popular']);
+        Route::get('/genres/{genre_name}', [DiscoveryController::class, 'byGenre']);
     });
 
 });

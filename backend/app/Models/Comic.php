@@ -17,4 +17,8 @@ class Comic extends Model
     {
         return $this->belongsToMany(Genre::class, 'comic_genre');
     }
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
 }
