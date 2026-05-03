@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Chapter;
 use App\Models\ChapterPage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ChapterPageController extends Controller
@@ -14,12 +14,32 @@ class ChapterPageController extends Controller
     // 3.3.2 - Bulk Upload Pages
     public function bulkUpload(Request $request, $chapter_id)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'pages'   => 'required|array',
             'pages.*' => 'required|image|mimes:jpeg,png,webp|max:2048'
+        ], [
+            'pages.required'   => 'Harap unggah minimal satu berkas gambar.',
+            'pages.*.required' => 'Harap unggah minimal satu berkas gambar.',
+            'pages.*.image'    => 'Berkas yang diunggah harus berupa gambar.',
+            'pages.*.mimes'    => 'Format gambar tidak didukung. Gunakan jpeg, png, atau webp.',
+            'pages.*.max'      => 'Berkas yang diunggah harus berupa gambar (maks. 2MB per file).',
         ]);
 
-        $chapter = Chapter::findOrFail($chapter_id);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $chapter = Chapter::find($chapter_id);
+
+        if (!$chapter) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data episode tidak ditemukan.'
+            ], 404);
+        }
 
         $uploadedPages = [];
         $timestamp     = now();
@@ -31,12 +51,12 @@ class ChapterPageController extends Controller
             $path            = $file->store("comics/chapters/{$chapter->id}", 'public');
 
             $uploadedPages[] = [
-                'id'         => Str::uuid(),
-                'chapter_id' => $chapter->id,
-                'page_number'=> $pageNumber,
-                'image_url'  => $path,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp
+                'id'          => Str::uuid(),
+                'chapter_id'  => $chapter->id,
+                'page_number' => $pageNumber,
+                'image_url'   => $path,
+                'created_at'  => $timestamp,
+                'updated_at'  => $timestamp
             ];
         }
 
@@ -52,13 +72,35 @@ class ChapterPageController extends Controller
     // 3.3.5 - Reorder Pages
     public function reorder(Request $request, $chapter_id)
     {
-        $request->validate([
-            'pages'              => 'required|array',
-            'pages.*.id'         => 'required|exists:chapter_pages,id',
-            'pages.*.page_number'=> 'required|integer|min:1|distinct'
+        $validator = Validator::make($request->all(), [
+            'pages'               => 'required|array',
+            'pages.*.id'          => 'required|exists:chapter_pages,id',
+            'pages.*.page_number' => 'required|integer|min:1|distinct'
+        ], [
+            'pages.required'               => 'Data halaman tidak boleh kosong.',
+            'pages.*.id.required'          => 'ID halaman tidak boleh kosong.',
+            'pages.*.id.exists'            => 'ID halaman tidak ditemukan.',
+            'pages.*.page_number.required' => 'Nomor halaman tidak boleh kosong.',
+            'pages.*.page_number.integer'  => 'Nomor halaman harus berupa angka.',
+            'pages.*.page_number.min'      => 'Nomor halaman minimal 1.',
+            'pages.*.page_number.distinct' => 'Nomor halaman tidak boleh duplikat.',
         ]);
 
-        $chapter = Chapter::findOrFail($chapter_id);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $chapter = Chapter::find($chapter_id);
+
+        if (!$chapter) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data episode tidak ditemukan.'
+            ], 404);
+        }
 
         DB::beginTransaction();
         try {
