@@ -8,6 +8,7 @@ use App\Models\ChapterPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ChapterController extends Controller
@@ -15,12 +16,26 @@ class ChapterController extends Controller
     // 3.3.1 - Tambah Episode Baru
     public function store(Request $request, $comic_id)
     {
-        $request->validate([
+        $comic = Comic::find($comic_id);
+
+        if (!$comic) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data komik tidak ditemukan.'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
             'chapter_number' => 'required|numeric|min:0',
             'title'          => 'nullable|string|max:255'
         ]);
 
-        $comic = Comic::findOrFail($comic_id);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
 
         $chapterExists = Chapter::where('comic_id', $comic->id)
             ->where('chapter_number', $request->chapter_number)
@@ -51,12 +66,28 @@ class ChapterController extends Controller
     // 3.3.3 - Update Metadata Episode
     public function update(Request $request, $id)
     {
-        $chapter = Chapter::findOrFail($id);
+        $chapter = Chapter::find($id);
 
-        $validatedData = $request->validate([
+        if (!$chapter) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data episode tidak ditemukan.'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
             'chapter_number' => 'sometimes|numeric|min:0',
             'title'          => 'sometimes|string|max:255'
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
+        $validatedData = $validator->validated();
 
         if (isset($validatedData['chapter_number']) &&
             $validatedData['chapter_number'] != $chapter->chapter_number) {
@@ -86,7 +117,14 @@ class ChapterController extends Controller
     // 3.3.4 - Hapus Episode
     public function destroy($id)
     {
-        $chapter = Chapter::findOrFail($id);
+        $chapter = Chapter::find($id);
+
+        if (!$chapter) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data episode tidak ditemukan.'
+            ], 404);
+        }
 
         Storage::disk('public')->deleteDirectory("comics/chapters/{$chapter->id}");
         $chapter->delete();
