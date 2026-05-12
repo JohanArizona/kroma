@@ -22,22 +22,13 @@
         <form class="space-y-5" @submit.prevent="handleRegister">
           
           <!-- Alert Error -->
-          <div
-            v-if="errorMessage"
-            class="p-3 text-sm text-red-600 bg-red-50 rounded-md"
-          >
+          <div v-if="errorMessage" class="p-3 text-sm text-red-600 bg-red-50 rounded-md">
             {{ errorMessage }}
           </div>
 
           <!-- Nama -->
           <div class="space-y-2">
-            <label
-              for="name"
-              class="text-sm font-medium text-gray-700"
-            >
-              Nama Lengkap
-            </label>
-
+            <label for="name" class="text-sm font-medium text-gray-700">Nama Lengkap</label>
             <input 
               v-model="form.name" 
               id="name" 
@@ -50,13 +41,7 @@
           
           <!-- Email -->
           <div class="space-y-2">
-            <label
-              for="email"
-              class="text-sm font-medium text-gray-700"
-            >
-              Email
-            </label>
-
+            <label for="email" class="text-sm font-medium text-gray-700">Email</label>
             <input 
               v-model="form.email" 
               id="email" 
@@ -69,13 +54,7 @@
           
           <!-- Password -->
           <div class="space-y-2">
-            <label
-              for="password"
-              class="text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-
+            <label for="password" class="text-sm font-medium text-gray-700">Password</label>
             <input 
               v-model="form.password" 
               id="password" 
@@ -88,13 +67,7 @@
 
           <!-- Konfirmasi Password -->
           <div class="space-y-2">
-            <label
-              for="password_confirmation"
-              class="text-sm font-medium text-gray-700"
-            >
-              Konfirmasi Password
-            </label>
-
+            <label for="password_confirmation" class="text-sm font-medium text-gray-700">Konfirmasi Password</label>
             <input 
               v-model="form.password_confirmation" 
               id="password_confirmation" 
@@ -114,23 +87,15 @@
               class="rounded border-gray-300 text-[#7C3AED] focus:ring-[#7C3AED]"
               required
             />
-
-            <label
-              for="agree"
-              class="text-sm text-gray-600 cursor-pointer"
-            >
+            <label for="agree" class="text-sm text-gray-600 cursor-pointer">
               Saya menyetujui syarat dan ketentuan layanan
             </label>
           </div>
           
-          <!-- Button Register -->
-          <button 
-            type="submit" 
-            :disabled="isLoading"
-            class="inline-flex w-full h-11 items-center justify-center rounded-md bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-sm font-medium transition-colors disabled:opacity-50"
-          >
+          <!-- Button Register Menggunakan Komponen UI -->
+          <Button type="submit" :disabled="isLoading" class="w-full h-11">
             {{ isLoading ? 'Sedang Membuat Akun...' : 'Daftar' }}
-          </button>
+          </Button>
           
           <!-- Divider -->
           <div class="flex items-center gap-3 text-xs text-gray-400">
@@ -139,45 +104,32 @@
             <div class="flex-1 h-px bg-gray-200"></div>
           </div>
           
-          <!-- Google -->
-          <button
-            type="button"
-            class="inline-flex w-full h-11 items-center justify-center rounded-md border border-gray-300 bg-transparent text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
+          <!-- Google Button Menggunakan Komponen UI -->
+          <Button type="button" variant="outline" class="w-full h-11">
             Lanjutkan dengan Google
-          </button>
+          </Button>
         </form>
         
         <!-- Footer -->
         <p class="mt-8 text-sm text-gray-500 text-center">
           Sudah punya akun?
-
-          <router-link
-            to="/login"
-            class="text-[#7C3AED] font-medium hover:underline"
-          >
+          <router-link to="/login" class="text-[#7C3AED] font-medium hover:underline">
             Masuk
           </router-link>
         </p>
       </div>
     </div>
 
-    <!-- Kolom Kanan -->
+    <!-- Kolom Kanan: Dekorasi Grid -->
     <div class="hidden lg:flex bg-gray-50 border-l border-gray-200 items-center justify-center p-12 relative overflow-hidden">
-      
-      <!-- Text -->
       <div class="relative z-10 max-w-md">
         <h2 class="text-4xl font-bold text-gray-900 leading-tight mb-4">
-          Bergabung bersama<br />
-          komunitas pembaca.
+          Bergabung bersama<br />komunitas pembaca.
         </h2>
-
         <p class="text-gray-500">
           Temukan berbagai cerita menarik dan nikmati pengalaman membaca terbaik.
         </p>
       </div>
-      
-      <!-- Grid Background -->
       <div class="absolute inset-0 grid grid-cols-3 gap-3 p-8 opacity-30 rotate-6 scale-110 pointer-events-none">
         <div 
           v-for="(cover, index) in backgroundCovers" 
@@ -194,6 +146,8 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+// Import komponen Button buatan kita
+import Button from '../components/ui/Button.vue'
 
 const router = useRouter()
 
@@ -221,7 +175,6 @@ const backgroundCovers = ref([
 ])
 
 const handleRegister = async () => {
-
   if (form.password !== form.password_confirmation) {
     errorMessage.value = 'Konfirmasi password tidak cocok'
     return
@@ -231,51 +184,34 @@ const handleRegister = async () => {
   errorMessage.value = ''
 
   try {
-
-    const response = await fetch(
-      'http://localhost:8000/api/v1/auth/register',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          password_confirmation: form.password_confirmation
-        })
-      }
-    )
+    const response = await fetch('http://localhost:8000/api/v1/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        password_confirmation: form.password_confirmation
+      })
+    })
 
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(
-        data.message ||
-        'Registrasi gagal. Silakan coba lagi.'
-      )
+      throw new Error(data.message || 'Registrasi gagal. Silakan coba lagi.')
     }
 
-    localStorage.setItem(
-      'kroma_token',
-      data.data.access_token
-    )
-
-    localStorage.setItem(
-      'kroma_user',
-      JSON.stringify(data.data.user)
-    )
+    localStorage.setItem('kroma_token', data.data.access_token)
+    localStorage.setItem('kroma_user', JSON.stringify(data.data.user))
 
     router.push('/')
 
   } catch (error) {
-
     errorMessage.value = error.message
-
   } finally {
-
     isLoading.value = false
   }
 }
