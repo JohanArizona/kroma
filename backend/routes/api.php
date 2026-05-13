@@ -43,9 +43,11 @@ Route::prefix('v1')->group(function () {
 
         // --- LAYANAN EPISODE & HALAMAN (Tugas Rahma) ---
         Route::middleware('admin')->group(function () {
+            Route::get('/comics/{comic_id}/chapters', [ChapterController::class, 'index']);
             Route::post('/comics/{comic_id}/chapters', [ChapterController::class, 'store']);
             Route::patch('/chapters/{id}', [ChapterController::class, 'update']);
             Route::delete('/chapters/{id}', [ChapterController::class, 'destroy']);
+            Route::get('/chapters/{chapter_id}/pages', [ChapterPageController::class, 'index']);
             Route::post('/chapters/{chapter_id}/pages', [ChapterPageController::class, 'bulkUpload']);
             Route::put('/chapters/{chapter_id}/pages/reorder', [ChapterPageController::class, 'reorder']);
         });
@@ -70,13 +72,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/genres/{genre_name}', [DiscoveryController::class, 'byGenre']);
     });
 
-        // --- LAYANAN PENCARIAN (Tugas Adelia) ---
+    // --- LAYANAN PENCARIAN (Tugas Adelia) ---
     Route::get('/search', [SearchController::class, 'search']);
 
-            // --- LAYANAN KOMENTAR (Tugas Adelia) ---
-        Route::post('/chapters/{chapter_id}/comments', [CommentController::class, 'store']);
-        Route::get('/chapters/{chapter_id}/comments', [CommentController::class, 'index']);
-        Route::patch('/comments/{id}', [CommentController::class, 'update']);
-        Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
-        
+    // --- LAYANAN KOMENTAR (Tugas Adelia) ---
+    Route::post('/chapters/{chapter_id}/comments', [CommentController::class, 'store']);
+    Route::get('/chapters/{chapter_id}/comments', [CommentController::class, 'index']);
+    Route::patch('/comments/{id}', [CommentController::class, 'update']);
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
 });

@@ -11,6 +11,29 @@ use Illuminate\Support\Str;
 
 class ChapterPageController extends Controller
 {
+    // Tambahan untuk FE - Tampilkan daftar halaman per episode
+    public function index($chapter_id)
+    {
+        $chapter = Chapter::find($chapter_id);
+
+        if (!$chapter) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data episode tidak ditemukan.'
+            ], 404);
+        }
+
+        $pages = ChapterPage::where('chapter_id', $chapter->id)
+            ->orderBy('page_number', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Daftar halaman berhasil dimuat.',
+            'data'    => $pages
+        ], 200);
+    }
+
     // 3.3.2 - Bulk Upload Pages
     public function bulkUpload(Request $request, $chapter_id)
     {
@@ -74,12 +97,11 @@ class ChapterPageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'pages'               => 'required|array',
-            'pages.*.id'          => 'required|exists:chapter_pages,id',
+            'pages.*.id'          => 'required',
             'pages.*.page_number' => 'required|integer|min:1|distinct'
         ], [
             'pages.required'               => 'Data halaman tidak boleh kosong.',
             'pages.*.id.required'          => 'ID halaman tidak boleh kosong.',
-            'pages.*.id.exists'            => 'ID halaman tidak ditemukan.',
             'pages.*.page_number.required' => 'Nomor halaman tidak boleh kosong.',
             'pages.*.page_number.integer'  => 'Nomor halaman harus berupa angka.',
             'pages.*.page_number.min'      => 'Nomor halaman minimal 1.',
@@ -104,11 +126,28 @@ class ChapterPageController extends Controller
 
         DB::beginTransaction();
         try {
-            foreach ($request->pages as $pageData) {
-                ChapterPage::where('chapter_id', $chapter->id)
-                    ->where('id', $pageData['id'])
-                    ->update(['page_number' => $pageData['page_number']]);
+            // Pass 1: Set ke nilai sementara untuk hindari unique constraint conflict.
+            // PENTING: cast id ke string agar MySQL menggunakan string comparison,
+            // bukan decimal comparison yang menyebabkan error pada UUID di kolom char(36).
+            foreach ($request->pages as $index => $pageData) {
+                DB::table('chapter_pages')
+                    ->where('id', (string) $pageData['id'])
+                    ->update([
+                        'page_number' => 10000 + $index,
+                        'updated_at'  => now()
+                    ]);
             }
+
+            // Pass 2: Set ke nilai akhir yang diinginkan
+            foreach ($request->pages as $pageData) {
+                DB::table('chapter_pages')
+                    ->where('id', (string) $pageData['id'])
+                    ->update([
+                        'page_number' => $pageData['page_number'],
+                        'updated_at'  => now()
+                    ]);
+            }
+
             DB::commit();
 
             return response()->json([
@@ -121,7 +160,7 @@ class ChapterPageController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui urutan halaman.'
+                'message' => 'Gagal memperbarui urutan halaman: ' . $e->getMessage()
             ], 500);
         }
     }
