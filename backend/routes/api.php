@@ -70,6 +70,8 @@ Route::prefix('v1')->group(function () {
     Route::prefix('discovery')->group(function () {
         Route::get('/popular', [DiscoveryController::class, 'popular']);
         Route::get('/genres/{genre_name}', [DiscoveryController::class, 'byGenre']);
+        Route::get('/genres', [DiscoveryController::class, 'getAllGenres']);
+        Route::get('/all', [DiscoveryController::class, 'all']);
     });
 
     // --- LAYANAN PENCARIAN (Tugas Adelia) ---
