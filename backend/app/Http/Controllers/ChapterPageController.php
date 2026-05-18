@@ -6,12 +6,13 @@ use App\Models\Chapter;
 use App\Models\ChapterPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ChapterPageController extends Controller
 {
-    // Tambahan untuk FE - Tampilkan daftar halaman per episode
+    // Tampilkan daftar halaman per episode
     public function index($chapter_id)
     {
         $chapter = Chapter::find($chapter_id);
@@ -23,7 +24,9 @@ class ChapterPageController extends Controller
             ], 404);
         }
 
-        $pages = ChapterPage::where('chapter_id', $chapter->id)
+        // Gunakan DB::table() agar id dikembalikan sebagai nilai asli DB (tidak di-cast oleh model)
+        $pages = DB::table('chapter_pages')
+            ->where('chapter_id', (string) $chapter->id)
             ->orderBy('page_number', 'asc')
             ->get();
 
@@ -66,7 +69,8 @@ class ChapterPageController extends Controller
 
         $uploadedPages = [];
         $timestamp     = now();
-        $lastPage      = ChapterPage::where('chapter_id', $chapter->id)
+        $lastPage      = DB::table('chapter_pages')
+                            ->where('chapter_id', (string) $chapter->id)
                             ->max('page_number') ?? 0;
 
         foreach ($request->file('pages') as $index => $file) {
@@ -74,8 +78,8 @@ class ChapterPageController extends Controller
             $path            = $file->store("comics/chapters/{$chapter->id}", 'public');
 
             $uploadedPages[] = [
-                'id'          => Str::uuid(),
-                'chapter_id'  => $chapter->id,
+                'id'          => (string) Str::uuid(),
+                'chapter_id'  => (string) $chapter->id,
                 'page_number' => $pageNumber,
                 'image_url'   => $path,
                 'created_at'  => $timestamp,
@@ -83,13 +87,67 @@ class ChapterPageController extends Controller
             ];
         }
 
-        ChapterPage::insert($uploadedPages);
+        DB::table('chapter_pages')->insert($uploadedPages);
 
         return response()->json([
             'success' => true,
             'message' => count($uploadedPages) . ' halaman berhasil diunggah.',
             'data'    => $uploadedPages
         ], 201);
+    }
+
+    // Hapus satu halaman berdasarkan page_number (lebih reliable dari id)
+    public function deletePage($chapter_id, $page_number)
+    {
+        $chapter = Chapter::find($chapter_id);
+
+        if (!$chapter) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data episode tidak ditemukan.'
+            ], 404);
+        }
+
+        $page = DB::table('chapter_pages')
+            ->where('chapter_id', (string) $chapter->id)
+            ->where('page_number', (int) $page_number)
+            ->first();
+
+        if (!$page) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Halaman tidak ditemukan.'
+            ], 404);
+        }
+
+        // Hapus file fisik dari storage
+        if ($page->image_url) {
+            Storage::disk('public')->delete($page->image_url);
+        }
+
+        // Hapus record dari DB
+        DB::table('chapter_pages')
+            ->where('chapter_id', (string) $chapter->id)
+            ->where('page_number', (int) $page_number)
+            ->delete();
+
+        // Rapikan ulang nomor halaman setelah penghapusan
+        $remaining = DB::table('chapter_pages')
+            ->where('chapter_id', (string) $chapter->id)
+            ->orderBy('page_number', 'asc')
+            ->get();
+
+        foreach ($remaining as $idx => $p) {
+            DB::table('chapter_pages')
+                ->where('chapter_id', (string) $chapter->id)
+                ->where('id', $p->id)
+                ->update(['page_number' => $idx + 1, 'updated_at' => now()]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Halaman berhasil dihapus dan urutan dirapikan.'
+        ], 200);
     }
 
     // 3.3.5 - Reorder Pages
@@ -127,8 +185,7 @@ class ChapterPageController extends Controller
         DB::beginTransaction();
         try {
             // Pass 1: Set ke nilai sementara untuk hindari unique constraint conflict.
-            // PENTING: cast id ke string agar MySQL menggunakan string comparison,
-            // bukan decimal comparison yang menyebabkan error pada UUID di kolom char(36).
+            // Cast id ke string agar MySQL gunakan string comparison pada kolom char(36).
             foreach ($request->pages as $index => $pageData) {
                 DB::table('chapter_pages')
                     ->where('id', (string) $pageData['id'])

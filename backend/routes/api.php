@@ -50,6 +50,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/chapters/{chapter_id}/pages', [ChapterPageController::class, 'index']);
             Route::post('/chapters/{chapter_id}/pages', [ChapterPageController::class, 'bulkUpload']);
             Route::put('/chapters/{chapter_id}/pages/reorder', [ChapterPageController::class, 'reorder']);
+            Route::delete('/chapters/{chapter_id}/pages/{page_number}', [ChapterPageController::class, 'deletePage']);
         });
 
         // --- LAYANAN DASHBOARD ADMIN ---
