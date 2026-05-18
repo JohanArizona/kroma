@@ -8,6 +8,8 @@ import ComicsView from "../pages/admin/ComicsView.vue";
 import ChaptersView from "../pages/admin/ChaptersView.vue";
 import ChapterPagesView from "../pages/admin/ChapterPagesView.vue";
 import LibraryView from "../pages/LibraryView.vue";
+import ComicDetailView from "../pages/ComicDetailView.vue";
+import ChapterReaderView from "../pages/ChapterReaderView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,6 +36,25 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/library",
+      name: "library",
+      component: LibraryView,
+      meta: { requiresAuth: true },
+    },
+    // --- HALAMAN KOMIK MEMBER ---
+    {
+      path: "/comics/:comicId",
+      name: "comic.detail",
+      component: ComicDetailView,
+    },
+    {
+      path: "/comics/:comicId/chapters/:chapterId/read",
+      name: "chapter.read",
+      component: ChapterReaderView,
+      meta: { requiresAuth: true },
+    },
+    // --- ADMIN ---
+    {
       path: "/admin/dashboard",
       name: "admin.dashboard",
       component: DashboardView,
@@ -56,12 +77,6 @@ const router = createRouter({
       name: "admin.chapter.pages",
       component: ChapterPagesView,
       meta: { requiresAuth: true, requiresAdmin: true },
-    },
-    {
-      path: "/library",
-      name: "library",
-      component: LibraryView,
-      meta: { requiresAuth: true },
     },
   ],
 });
