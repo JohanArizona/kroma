@@ -64,7 +64,7 @@
             <tr v-else v-for="ch in chapters" :key="ch.id" class="hover:bg-gray-50/80 transition-colors bg-white">
               <!-- Nomor Episode -->
               <td class="px-6 py-4">
-                <span class="font-bold text-[#7C3AED] text-base">Eps {{ ch.chapter_number }}</span>
+               <span class="font-bold text-[#7C3AED] text-base">Eps {{ parseFloat(ch.chapter_number) }}</span>
               </td>
               <!-- Judul -->
              <td class="px-6 py-4 font-medium text-gray-900">

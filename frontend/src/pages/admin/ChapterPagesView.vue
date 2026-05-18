@@ -9,12 +9,12 @@
     />
 
     <ConfirmModal
-      :show="showDeleteConfirm"
-      title="Hapus Semua Halaman?"
-      message="Apakah Anda yakin ingin menghapus SEMUA halaman pada episode ini? Aksi ini tidak bisa dibatalkan."
-      confirmText="Ya, Hapus Semua"
-      @cancel="showDeleteConfirm = false"
-      @confirm="executeDeleteAll"
+      :show="showDeletePageModal"
+      title="Hapus Halaman?"
+      :message="`Hapus halaman nomor ${pageToDelete?.page_number}? Aksi ini tidak bisa dibatalkan.`"
+      confirmText="Ya, Hapus"
+      @cancel="showDeletePageModal = false"
+      @confirm="executeDeletePage"
     />
 
     <!-- Breadcrumb & Header -->
@@ -28,7 +28,7 @@
           <span class="text-gray-900 font-medium">Halaman Episode {{ chapterNumber }}</span>
         </div>
         <h1 class="text-2xl font-bold text-gray-900">Kelola Halaman Komik</h1>
-        <p class="text-gray-500 text-sm mt-1">Upload, lihat, dan atur urutan halaman episode ini.</p>
+        <p class="text-gray-500 text-sm mt-1">Upload, lihat, hapus, dan atur urutan halaman episode ini.</p>
       </div>
     </div>
 
@@ -39,7 +39,6 @@
         Upload Halaman Baru
       </h2>
 
-      <!-- Drop Zone -->
       <div
         class="border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer"
         :class="isDragging ? 'border-[#7C3AED] bg-[#7C3AED]/5' : 'border-gray-300 hover:border-[#7C3AED] hover:bg-gray-50'"
@@ -61,7 +60,6 @@
         />
       </div>
 
-      <!-- Preview Antrian Upload -->
       <div v-if="uploadQueue.length > 0" class="mt-4 space-y-2">
         <p class="text-sm font-semibold text-gray-700">{{ uploadQueue.length }} file siap diunggah:</p>
         <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
@@ -80,7 +78,6 @@
             >×</button>
           </div>
         </div>
-
         <div class="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" @click="clearQueue" class="rounded-lg border-gray-300 h-10 px-4 text-sm">Bersihkan</Button>
           <Button @click="submitUpload" :disabled="isUploading" class="rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white h-10 px-5 text-sm shadow-sm">
@@ -107,13 +104,6 @@
           >
             {{ isReordering ? 'Simpan Urutan' : 'Susun Ulang' }}
           </Button>
-          <Button
-            v-if="pages.length > 0"
-            @click="showDeleteConfirm = true"
-            class="rounded-lg border border-red-200 text-red-500 hover:bg-red-50 h-9 px-4 text-xs font-medium"
-          >
-            Hapus Semua
-          </Button>
         </div>
       </div>
 
@@ -128,7 +118,7 @@
         <div v-else class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
           <div
             v-for="(page, idx) in pages"
-            :key="page.id"
+            :key="page.page_number"
             class="relative aspect-[2/3] rounded-lg overflow-hidden border-2 transition-all group"
             :class="isReordering ? 'border-amber-300 cursor-grab active:cursor-grabbing' : 'border-gray-200'"
             :draggable="isReordering"
@@ -141,9 +131,23 @@
               :alt="`Halaman ${page.page_number}`"
               class="w-full h-full object-cover"
             />
+
+            <!-- Overlay nomor halaman -->
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
               <span class="text-white text-xs font-bold">{{ page.page_number }}</span>
             </div>
+
+            <!-- Tombol hapus per gambar — muncul saat hover, tersembunyi saat mode reorder -->
+            <button
+              v-if="!isReordering"
+              @click.stop="confirmDeletePage(page)"
+              title="Hapus halaman ini"
+              class="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+            >
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <!-- Drag handle indicator — hanya saat mode reorder -->
             <div v-if="isReordering" class="absolute top-1.5 right-1.5 w-5 h-5 bg-amber-400 rounded text-white flex items-center justify-center opacity-80">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
             </div>
@@ -177,13 +181,11 @@ const chapterNumber = ref(route.query.chapterNumber || '?')
 const pages = ref([])
 const isLoading = ref(true)
 
-// Alert dengan durasi lebih lama untuk error agar sempat dibaca
 const alert = reactive({ show: false, type: 'success', message: '' })
 const showAlert = (type, message) => {
   alert.type = type
   alert.message = message
   alert.show = true
-  // Error tampil 10 detik, sukses 4 detik
   setTimeout(() => { alert.show = false }, type === 'error' ? 10000 : 4000)
 }
 
@@ -203,8 +205,6 @@ const fetchPages = async () => {
     const data = await res.json()
     if (res.ok) {
       pages.value = (data.data || []).sort((a, b) => a.page_number - b.page_number)
-      console.log('[fetchPages] Halaman dimuat:', pages.value.length, 'item')
-      console.log('[fetchPages] Sample ID pertama:', pages.value[0]?.id, '| tipe:', typeof pages.value[0]?.id)
     } else {
       throw new Error(data.message || 'Gagal memuat halaman')
     }
@@ -253,10 +253,7 @@ const submitUpload = async () => {
     })
     const res = await fetch(`http://localhost:8000/api/v1/chapters/${chapterId}/pages`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json'
-      },
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
       body: formData
     })
     const data = await res.json()
@@ -268,6 +265,35 @@ const submitUpload = async () => {
     showAlert('error', error.message)
   } finally {
     isUploading.value = false
+  }
+}
+
+// === DELETE PER HALAMAN ===
+// Menggunakan page_number sebagai identifier (lebih reliable dari id)
+const showDeletePageModal = ref(false)
+const pageToDelete = ref(null)
+
+const confirmDeletePage = (page) => {
+  pageToDelete.value = page
+  showDeletePageModal.value = true
+}
+
+const executeDeletePage = async () => {
+  showDeletePageModal.value = false
+  try {
+    const res = await fetch(
+      `http://localhost:8000/api/v1/chapters/${chapterId}/pages/${pageToDelete.value.page_number}`,
+      {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+      }
+    )
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message || 'Gagal menghapus halaman')
+    showAlert('success', `Halaman ${pageToDelete.value.page_number} berhasil dihapus.`)
+    await fetchPages()
+  } catch (error) {
+    showAlert('error', error.message)
   }
 }
 
@@ -301,11 +327,6 @@ const saveReorder = async () => {
         page_number: p.page_number
       }))
     }
-
-    // === DEBUG — lihat di Console browser ===
-    console.log('[Reorder] Total halaman:', payload.pages.length)
-    console.log('[Reorder] Payload lengkap:', JSON.stringify(payload, null, 2))
-
     const res = await fetch(`http://localhost:8000/api/v1/chapters/${chapterId}/pages/reorder`, {
       method: 'PUT',
       headers: {
@@ -315,32 +336,13 @@ const saveReorder = async () => {
       },
       body: JSON.stringify(payload)
     })
-
     const data = await res.json()
-
-    // === DEBUG — lihat response backend ===
-    console.log('[Reorder] HTTP Status:', res.status)
-    console.log('[Reorder] Response backend:', JSON.stringify(data, null, 2))
-
-    if (!res.ok) {
-      throw new Error(`[${res.status}] ${data.message || JSON.stringify(data)}`)
-    }
-
+    if (!res.ok) throw new Error(`[${res.status}] ${data.message || JSON.stringify(data)}`)
     showAlert('success', 'Urutan halaman berhasil disimpan!')
-
   } catch (error) {
-    console.error('[Reorder] Error final:', error)
     showAlert('error', error.message)
     await fetchPages()
   }
-}
-
-// === DELETE ALL ===
-const showDeleteConfirm = ref(false)
-
-const executeDeleteAll = async () => {
-  showDeleteConfirm.value = false
-  showAlert('error', 'Fitur hapus semua halaman membutuhkan implementasi backend tambahan.')
 }
 
 onMounted(() => {
