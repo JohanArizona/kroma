@@ -21,6 +21,21 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
     });
 
+    // --- LAYANAN PUBLIK (tanpa login) ---
+    Route::get('/comics', [ComicController::class, 'index']);
+    Route::get('/comics/{id}', [ComicController::class, 'show']);
+
+    // --- LAYANAN EKSPLORASI (Tugas Fifah) ---
+    Route::prefix('discovery')->group(function () {
+        Route::get('/popular', [DiscoveryController::class, 'popular']);
+        Route::get('/genres/{genre_name}', [DiscoveryController::class, 'byGenre']);
+        Route::get('/genres', [DiscoveryController::class, 'getAllGenres']);
+        Route::get('/all', [DiscoveryController::class, 'all']);
+    });
+
+    // --- LAYANAN PENCARIAN (Tugas Adelia) ---
+    Route::get('/search', [SearchController::class, 'search']);
+
     Route::middleware('auth:api')->group(function () {
 
         // --- LAYANAN PROFIL ---
@@ -31,9 +46,18 @@ Route::prefix('v1')->group(function () {
             Route::delete('/avatar', [ProfileController::class, 'deleteAvatar']);
         });
 
-        // --- LAYANAN MASTER KOMIK (Tugas Johan) ---
-        Route::get('/comics', [ComicController::class, 'index']);
+        // --- LAYANAN BACA KOMIK (Member) ---
+        // Chapter list dan pages dibuka untuk semua user yang login (bukan hanya admin)
+        Route::get('/comics/{comic_id}/chapters', [ChapterController::class, 'index']);
+        Route::get('/chapters/{chapter_id}/pages', [ChapterPageController::class, 'index']);
 
+        // --- LAYANAN KOMENTAR (Tugas Adelia) ---
+        Route::post('/chapters/{chapter_id}/comments', [CommentController::class, 'store']);
+        Route::get('/chapters/{chapter_id}/comments', [CommentController::class, 'index']);
+        Route::patch('/comments/{id}', [CommentController::class, 'update']);
+        Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
+        // --- LAYANAN MASTER KOMIK ADMIN (Tugas Johan) ---
         Route::middleware('admin')->prefix('comics')->group(function () {
             Route::post('/', [ComicController::class, 'store']);
             Route::patch('/{id}', [ComicController::class, 'updateMetadata']);
@@ -41,13 +65,14 @@ Route::prefix('v1')->group(function () {
             Route::delete('/{id}', [ComicController::class, 'destroy']);
         });
 
-        // --- LAYANAN EPISODE & HALAMAN (Tugas Rahma) ---
+        // --- LAYANAN EPISODE & HALAMAN ADMIN (Tugas Rahma) ---
         Route::middleware('admin')->group(function () {
             Route::post('/comics/{comic_id}/chapters', [ChapterController::class, 'store']);
             Route::patch('/chapters/{id}', [ChapterController::class, 'update']);
             Route::delete('/chapters/{id}', [ChapterController::class, 'destroy']);
             Route::post('/chapters/{chapter_id}/pages', [ChapterPageController::class, 'bulkUpload']);
             Route::put('/chapters/{chapter_id}/pages/reorder', [ChapterPageController::class, 'reorder']);
+            Route::delete('/chapters/{chapter_id}/pages/{page_number}', [ChapterPageController::class, 'deletePage']);
         });
 
         // --- LAYANAN DASHBOARD ADMIN ---
@@ -64,19 +89,4 @@ Route::prefix('v1')->group(function () {
 
     });
 
-    // --- LAYANAN EKSPLORASI (Tugas Fifah) ---
-    Route::prefix('discovery')->group(function () {
-        Route::get('/popular', [DiscoveryController::class, 'popular']);
-        Route::get('/genres/{genre_name}', [DiscoveryController::class, 'byGenre']);
-    });
-
-        // --- LAYANAN PENCARIAN (Tugas Adelia) ---
-    Route::get('/search', [SearchController::class, 'search']);
-
-            // --- LAYANAN KOMENTAR (Tugas Adelia) ---
-        Route::post('/chapters/{chapter_id}/comments', [CommentController::class, 'store']);
-        Route::get('/chapters/{chapter_id}/comments', [CommentController::class, 'index']);
-        Route::patch('/comments/{id}', [CommentController::class, 'update']);
-        Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
-        
 });

@@ -133,6 +133,8 @@ import { Search } from 'lucide-vue-next'
 import { Search } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Navbar from '../components/layout/Navbar.vue'
+import ComicCard from '../components/ui/ComicCard.vue'
 
 const router = useRouter()
 

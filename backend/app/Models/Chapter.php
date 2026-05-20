@@ -10,7 +10,11 @@ class Chapter extends Model
     use HasUuids;
 
     protected $fillable = [
-        'id', 'comic_id', 'chapter_number', 'title', 'created_by', 'updated_by'
+        'comic_id',
+        'chapter_number',
+        'title',
+        'created_by',
+        'updated_by',
     ];
 
     public function comic()
@@ -21,5 +25,25 @@ class Chapter extends Model
     public function pages()
     {
         return $this->hasMany(ChapterPage::class)->orderBy('page_number');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function readingHistories()
+    {
+        return $this->hasMany(ReadingHistory::class);
     }
 }

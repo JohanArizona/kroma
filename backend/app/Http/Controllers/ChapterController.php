@@ -13,6 +13,31 @@ use Illuminate\Support\Str;
 
 class ChapterController extends Controller
 {
+    // 3.3.0 - Tampilkan Daftar Episode per Komik (Tambahan untuk FE)
+    public function index($comic_id)
+    {
+        $comic = Comic::find($comic_id);
+
+        if (!$comic) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data komik tidak ditemukan.'
+            ], 404);
+        }
+
+        $chapters = Chapter::where('comic_id', $comic->id)
+            ->withCount('pages')
+            ->orderBy('chapter_number', 'asc')
+            ->get();
+
+        return response()->json([
+            'success'     => true,
+            'message'     => 'Daftar episode berhasil dimuat.',
+            'comic_title' => $comic->title,
+            'data'        => $chapters
+        ], 200);
+    }
+
     // 3.3.1 - Tambah Episode Baru
     public function store(Request $request, $comic_id)
     {

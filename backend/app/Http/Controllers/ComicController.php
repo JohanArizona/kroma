@@ -22,6 +22,25 @@ class ComicController extends Controller
         ], 200);
     }
 
+    // Tambahan untuk FE member - Tampilkan detail satu komik
+    public function show($id)
+    {
+        $comic = Comic::with('genres')->find($id);
+
+        if (!$comic) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data komik tidak ditemukan.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data komik berhasil dimuat.',
+            'data'    => $comic
+        ], 200);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -126,7 +145,7 @@ class ComicController extends Controller
 
         if ($comic->cover_url) Storage::disk('public')->delete($comic->cover_url);
         if ($comic->banner_url) Storage::disk('public')->delete($comic->banner_url);
-        
+
         $comic->delete();
 
         return response()->json([

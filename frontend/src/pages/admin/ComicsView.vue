@@ -104,11 +104,16 @@
               <!-- Aksi / Tombol -->
               <td class="px-6 py-4 text-right">
                 <div class="inline-flex items-center justify-end gap-2">
-                    <button title="Kelola Episode" class="w-8 h-8 rounded-lg border border-gray-200 hover:bg-[#7C3AED]/10 hover:border-[#7C3AED]/30 hover:text-[#7C3AED] flex items-center justify-center text-gray-500 transition-colors">
+                  <!-- TOMBOL KELOLA EPISODE — disambungkan ke ChaptersView -->
+                  <button
+                    @click="router.push({ name: 'admin.chapters', params: { comicId: c.id } })"
+                    title="Kelola Episode"
+                    class="w-8 h-8 rounded-lg border border-gray-200 hover:bg-[#7C3AED]/10 hover:border-[#7C3AED]/30 hover:text-[#7C3AED] flex items-center justify-center text-gray-500 transition-colors"
+                  >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
-                    </button>
+                  </button>
                   <button @click="openModal('edit', c)" title="Edit Komik" class="w-8 h-8 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 flex items-center justify-center text-gray-500 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                   </button>
@@ -161,7 +166,6 @@
                       <span class="text-sm font-medium">Klik untuk upload</span>
                       <span class="text-xs mt-1">Rasio 2:3 (Maks 2MB)</span>
                     </div>
-                    <!-- Hover Edit -->
                     <div v-if="previews.cover" class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <span class="text-white text-sm font-medium">Ganti Cover</span>
                     </div>
@@ -212,7 +216,7 @@
                 </div>
               </div>
 
-              <!-- Pilihan Genre (Checkboxes) BUG FIXED -->
+              <!-- Pilihan Genre (Checkboxes) -->
               <div class="space-y-2">
                 <label class="text-sm font-semibold text-gray-700 block">Pilih Genre <span class="text-red-500">*</span></label>
                 <div class="flex flex-wrap gap-2">
@@ -260,10 +264,8 @@ import ImageWithFallback from '../../components/ui/ImageWithFallback.vue'
 const router = useRouter()
 const token = localStorage.getItem('kroma_token')
 
-// Daftar Genre (Static List sesuai standar DB-mu)
 const availableGenres = ['Action', 'Romance', 'Fantasy', 'Sci-Fi', 'Drama', 'Comedy', 'Slice of Life', 'Horror', 'Mystery']
 
-// States Utama
 const comics = ref([])
 const isLoading = ref(true)
 const searchQuery = ref('')
@@ -274,7 +276,6 @@ const showAlert = (type, message) => {
   setTimeout(() => alert.show = false, 4000)
 }
 
-// Helpers
 const getMediaUrl = (path) => {
   if (!path) return ''
   if (path.startsWith('http')) return path
@@ -326,7 +327,7 @@ const handleFile = (e, type) => {
   const file = e.target.files[0]
   if (!file) return
   formFiles[type] = file
-  previews[type] = URL.createObjectURL(file) // Buat URL lokal untuk preview langsung
+  previews[type] = URL.createObjectURL(file)
 }
 
 const openModal = (mode, comicData = null) => {
@@ -342,10 +343,7 @@ const openModal = (mode, comicData = null) => {
     form.author = comicData.author
     form.status = comicData.status
     form.synopsis = comicData.synopsis
-    // Map genre objects ke array of string
     form.genres = comicData.genres ? comicData.genres.map(g => g.name) : []
-    
-    // Set preview dari DB
     if (comicData.cover_url) previews.cover = getMediaUrl(comicData.cover_url)
     if (comicData.banner_url) previews.banner = getMediaUrl(comicData.banner_url)
   } else {
@@ -371,12 +369,9 @@ const submitForm = async () => {
       formData.append('author', form.author)
       formData.append('status', form.status)
       formData.append('synopsis', form.synopsis)
-      
-      // CARA NGIRIM ARRAY KE LARAVEL FORM DATA!
       form.genres.forEach(genre => {
         formData.append('genres[]', genre)
       })
-
       formData.append('cover', formFiles.cover)
       if (formFiles.banner) formData.append('banner', formFiles.banner)
 
@@ -390,7 +385,6 @@ const submitForm = async () => {
       showAlert('success', 'Komik berhasil ditambahkan!')
       
     } else {
-      // Logic EDIT (PATCH Metadata)
       const resMeta = await fetch(`http://localhost:8000/api/v1/comics/${activeComicId.value}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
@@ -398,7 +392,6 @@ const submitForm = async () => {
       })
       if (!resMeta.ok) throw new Error('Gagal memperbarui metadata komik')
 
-      // Logic EDIT (PATCH Media - Cuma kalau ganti gambar)
       if (formFiles.cover || formFiles.banner) {
         const mediaData = new FormData()
         mediaData.append('_method', 'PATCH')
@@ -416,7 +409,7 @@ const submitForm = async () => {
     }
     
     showFormModal.value = false
-    await fetchComics() // Tarik ulang data
+    await fetchComics()
     
   } catch (error) {
     showAlert('error', error.message)
