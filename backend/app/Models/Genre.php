@@ -10,7 +10,9 @@ class Genre extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+    ];
 
     // Relasi Many-to-Many kembali ke comics
     public function comics()

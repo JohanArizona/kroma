@@ -10,7 +10,6 @@ class Comment extends Model
     use HasUuids;
 
     protected $fillable = [
-        'id',
         'chapter_id',
         'user_id',
         'content'
