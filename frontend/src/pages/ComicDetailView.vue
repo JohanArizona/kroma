@@ -1,64 +1,107 @@
 <template>
-  <div class="min-h-screen bg-gray-50 p-8">
+  <div class="min-h-screen bg-[#f8f8fb] p-10">
 
-    <div class="max-w-5xl mx-auto">
+    <div class="max-w-4xl mx-auto">
 
-      <!-- Comic Detail -->
-      <div class="bg-white rounded-2xl shadow-sm p-6 mb-8">
+      <!-- COMIC -->
+      <div class="bg-white rounded-3xl p-8 shadow-sm mb-10">
 
-        <h1 class="text-3xl font-bold mb-2">
-          {{ comic.title }}
+        <h1 class="text-5xl font-bold">
+          Shadow Monarch
         </h1>
 
-        <p class="text-gray-500 mb-4">
-          Author: {{ comic.author }}
+        <p class="text-gray-500 mt-3">
+          by Johan Arizona
         </p>
 
-        <p class="text-gray-700">
-          {{ comic.description }}
+        <p class="mt-6 text-gray-700 leading-relaxed">
+          A legendary hunter awakens a mysterious power...
         </p>
 
       </div>
 
-      <!-- Comment Section -->
-      <div class="bg-white rounded-2xl shadow-sm p-6">
+      <!-- COMMENT SECTION -->
+      <div class="bg-white rounded-3xl p-8 shadow-sm">
 
-        <h2 class="text-2xl font-bold mb-6">
+        <h2 class="text-3xl font-bold mb-8">
           Comments
         </h2>
 
-        <!-- Add Comment -->
-        <div class="mb-6">
+        <!-- ADD COMMENT -->
+        <div class="mb-10">
 
           <textarea
             v-model="newComment"
-            placeholder="Tulis komentar..."
-            class="w-full border rounded-xl p-4 mb-4"
+            placeholder="Write your comment..."
+            class="w-full border rounded-2xl p-4 h-32 outline-none focus:ring-2 focus:ring-purple-500"
           ></textarea>
 
           <button
             @click="addComment"
-            class="px-5 py-2 rounded-lg bg-[#7C3AED] text-white"
+            class="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl"
           >
-            Kirim Komentar
+            Send Comment
           </button>
 
         </div>
 
-        <!-- Comment List -->
-        <div class="space-y-4">
+        <!-- COMMENT LIST -->
+        <div class="space-y-5">
 
           <div
             v-for="comment in comments"
             :key="comment.id"
-            class="border rounded-xl p-4"
+            class="border rounded-2xl p-5"
           >
 
-            <div class="font-semibold mb-1">
-              {{ comment.user?.name }}
+            <div class="flex justify-between items-center mb-2">
+
+              <h3 class="font-bold">
+                {{ comment.user?.name }}
+              </h3>
+
+              <div class="space-x-3">
+
+                <button
+                  @click="startEdit(comment)"
+                  class="text-blue-500"
+                >
+                  Edit
+                </button>
+
+                <button
+                  @click="deleteComment(comment.id)"
+                  class="text-red-500"
+                >
+                  Delete
+                </button>
+
+              </div>
+
             </div>
 
-            <p class="text-gray-700">
+            <!-- EDIT MODE -->
+            <div v-if="editingId === comment.id">
+
+              <textarea
+                v-model="editContent"
+                class="w-full border rounded-xl p-3"
+              ></textarea>
+
+              <button
+                @click="updateComment(comment.id)"
+                class="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg"
+              >
+                Save
+              </button>
+
+            </div>
+
+            <!-- NORMAL -->
+            <p
+              v-else
+              class="text-gray-700"
+            >
               {{ comment.content }}
             </p>
 
@@ -76,22 +119,23 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const comic = ref({
-  title: 'Comic Dummy',
-  author: 'Unknown',
-  description: 'Deskripsi comic'
-})
-
 const comments = ref([])
 
 const newComment = ref('')
 
+const editingId = ref(null)
+
+const editContent = ref('')
+
+const chapterId = 1
+
+// READ COMMENTS
 const fetchComments = async () => {
 
   try {
 
     const res = await fetch(
-      'http://localhost:8000/api/v1/chapters/1/comments'
+      `http://127.0.0.1:8000/api/v1/chapters/${chapterId}/comments`
     )
 
     const data = await res.json()
@@ -103,8 +147,10 @@ const fetchComments = async () => {
     console.error(error)
 
   }
+
 }
 
+// CREATE COMMENT
 const addComment = async () => {
 
   try {
@@ -112,7 +158,7 @@ const addComment = async () => {
     const token = localStorage.getItem('kroma_token')
 
     await fetch(
-      'http://localhost:8000/api/v1/chapters/1/comments',
+      `http://127.0.0.1:8000/api/v1/chapters/${chapterId}/comments`,
       {
         method: 'POST',
         headers: {
@@ -134,9 +180,81 @@ const addComment = async () => {
     console.error(error)
 
   }
+
+}
+
+// START EDIT
+const startEdit = (comment) => {
+
+  editingId.value = comment.id
+
+  editContent.value = comment.content
+
+}
+
+// UPDATE COMMENT
+const updateComment = async (id) => {
+
+  try {
+
+    const token = localStorage.getItem('kroma_token')
+
+    await fetch(
+      `http://127.0.0.1:8000/api/v1/comments/${id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: editContent.value
+        })
+      }
+    )
+
+    editingId.value = null
+
+    fetchComments()
+
+  } catch (error) {
+
+    console.error(error)
+
+  }
+
+}
+
+// DELETE COMMENT
+const deleteComment = async (id) => {
+
+  try {
+
+    const token = localStorage.getItem('kroma_token')
+
+    await fetch(
+      `http://127.0.0.1:8000/api/v1/comments/${id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+
+    fetchComments()
+
+  } catch (error) {
+
+    console.error(error)
+
+  }
+
 }
 
 onMounted(() => {
+
   fetchComments()
+
 })
 </script>

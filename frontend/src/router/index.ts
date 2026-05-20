@@ -1,15 +1,19 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from "../pages/LoginView.vue";
 import RegisterView from "../pages/RegisterView.vue";
 import HomeView from "../pages/HomeView.vue";
 import ProfileView from "../pages/ProfileView.vue";
+
+import LibraryView from "../pages/LibraryView.vue";
+
+import ComicDetailView from "../pages/ComicDetailView.vue";
+
+import ChapterReaderView from "../pages/ChapterReaderView.vue";
+
 import DashboardView from "../pages/admin/DashboardView.vue";
 import ComicsView from "../pages/admin/ComicsView.vue";
 import ChaptersView from "../pages/admin/ChaptersView.vue";
 import ChapterPagesView from "../pages/admin/ChapterPagesView.vue";
-import LibraryView from "../pages/LibraryView.vue";
-import ComicDetailView from "../pages/ComicDetailView.vue";
-import ChapterReaderView from "../pages/ChapterReaderView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -64,22 +68,10 @@ const router = createRouter({
       path: "/admin/comics",
       name: "admin.comics",
       component: ComicsView,
-      meta: { requiresAuth: true, requiresAdmin: true },
-    },
-    {
-      path: "/admin/comics/:comicId/chapters",
-      name: "admin.chapters",
-      component: ChaptersView,
-      meta: { requiresAuth: true, requiresAdmin: true },
-    },
-    {
-      path: "/admin/chapters/:chapterId/pages",
-      name: "admin.chapter.pages",
-      component: ChapterPagesView,
-      meta: { requiresAuth: true, requiresAdmin: true },
-    },
-  ],
-});
+      meta: { requiresAuth: true, requiresAdmin: true }
+    }
+  ]
+})
 
 router.beforeEach((to, from) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
