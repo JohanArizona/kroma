@@ -33,7 +33,7 @@ class ProfileController extends Controller
             ], 422);
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('api')->user();
         $user->update(['name' => $request->name]);
 
         return response()->json([
@@ -49,7 +49,7 @@ class ProfileController extends Controller
             'avatar' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $user = Auth::user();
+        $user = Auth::guard('api')->user();
 
         // Hapus avatar lama jika bukan avatar default
         if ($user->avatar_url && $user->avatar_url !== 'default-avatar.png') {
@@ -70,7 +70,7 @@ class ProfileController extends Controller
 
     public function deleteAvatar()
     {
-        $user = Auth::user();
+        $user = Auth::guard('api')->user();
 
         if ($user->avatar_url === 'default-avatar.png') {
             return response()->json([
