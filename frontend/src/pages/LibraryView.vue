@@ -6,24 +6,26 @@
 
       <!-- Header -->
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">My Library</h1>
-        <p class="text-sm text-gray-500 mt-1">{{ totalFavorites }} comics in your collection</p>
+        <span
+          @click="router.push('/')"
+          class="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 cursor-pointer transition-colors mb-3"
+        >
+          <ChevronLeft class="w-4 h-4" />
+          Kembali
+        </span>
+        <h1 class="text-2xl font-bold text-gray-900">Koleksi Saya</h1>
+        <p class="text-sm text-gray-500 mt-1">{{ totalFavorites }} komik dalam koleksi Anda</p>
       </div>
 
       <!-- Tabs -->
       <div class="flex gap-1 mb-6 border-b border-gray-200">
-        <button
-          class="px-4 py-2.5 text-sm font-semibold text-[#7C3AED] border-b-2 border-[#7C3AED] -mb-px transition-colors"
-        >
-          Favorites
+        <button class="px-4 py-2.5 text-sm font-semibold text-[#7C3AED] border-b-2 border-[#7C3AED] -mb-px transition-colors">
+          Favorit
         </button>
       </div>
 
       <!-- Loading State -->
-      <div
-        v-if="isLoading"
-        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
-      >
+      <div v-if="isLoading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <div v-for="n in 6" :key="n" class="animate-pulse">
           <div class="aspect-[2/3] rounded-md bg-gray-200 mb-2"></div>
           <div class="h-4 bg-gray-200 rounded w-3/4 mb-1"></div>
@@ -65,11 +67,11 @@
         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
       >
         <div
-v-for="item in favorites"
-:key="item.favorite_id"
-class="relative group cursor-pointer"
-@click="goToComic(item.comic?.id)"
->
+          v-for="item in favorites"
+          :key="item.favorite_id"
+          class="relative group cursor-pointer"
+          @click="goToComic(item.comic?.id)"
+        >
           <div class="relative aspect-[2/3] rounded-md overflow-hidden border border-gray-200 mb-2 bg-gray-100">
             <img
               :src="getCoverUrl(item.comic?.cover_url)"
@@ -77,8 +79,6 @@ class="relative group cursor-pointer"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               @error="handleImgError"
             />
-
-            <!-- Overlay hapus: muncul saat hover -->
             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
               <button
                 @click.stop="confirmRemove(item)"
@@ -88,17 +88,13 @@ class="relative group cursor-pointer"
               </button>
             </div>
           </div>
-
           <h3 class="font-semibold text-gray-900 text-sm truncate">{{ item.comic?.title }}</h3>
-          <p class="text-xs text-gray-400 truncate">
-            Ditambahkan {{ formatDate(item.added_at) }}
-          </p>
+          <p class="text-xs text-gray-400 truncate">Ditambahkan {{ formatDate(item.added_at) }}</p>
         </div>
       </div>
 
     </main>
 
-    <!-- Toast Notification -->
     <AlertToast
       :show="alert.show"
       :type="alert.type"
@@ -106,7 +102,6 @@ class="relative group cursor-pointer"
       @close="alert.show = false"
     />
 
-    <!-- Confirm Modal: muncul saat confirmRemove() dipanggil -->
     <ConfirmModal
       :show="showDeleteModal"
       title="Hapus dari Favorit?"
@@ -123,6 +118,7 @@ class="relative group cursor-pointer"
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ChevronLeft } from 'lucide-vue-next'
 import Navbar from '../components/layout/Navbar.vue'
 import AlertToast from '../components/ui/AlertToast.vue'
 import ConfirmModal from '../components/ui/ConfirmModal.vue'
@@ -132,13 +128,10 @@ const router = useRouter()
 const favorites = ref([])
 const isLoading = ref(true)
 const error = ref('')
-
 const showDeleteModal = ref(false)
 const selectedItem = ref(null)
-
 const alert = ref({ show: false, type: 'success', message: '' })
 
-// Reaktif otomatis setiap favorites[] berubah
 const totalFavorites = computed(() => favorites.value.length)
 
 const getToken = () => localStorage.getItem('kroma_token')
@@ -170,25 +163,15 @@ const fetchFavorites = async () => {
     router.push('/login')
     return
   }
-
   try {
     const res = await fetch('http://localhost:8000/api/v1/library/favorites', {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
-
     const data = await res.json()
-
     if (!res.ok) {
-      if (res.status === 401) {
-        router.push('/login')
-        return
-      }
+      if (res.status === 401) { router.push('/login'); return }
       throw new Error(data.message || 'Gagal memuat daftar favorit.')
     }
-
     favorites.value = data.data
   } catch (err) {
     error.value = err.message
@@ -198,11 +181,8 @@ const fetchFavorites = async () => {
 }
 
 const goToComic = (comicId) => {
-
-if (!comicId) return
-
-router.push(`/comics/${comicId}`)
-
+  if (!comicId) return
+  router.push(`/comics/${comicId}`)
 }
 
 const confirmRemove = (item) => {
@@ -214,30 +194,15 @@ const removeFavorite = async () => {
   showDeleteModal.value = false
   const token = getToken()
   const comicId = selectedItem.value?.comic?.id
-
   if (!token || !comicId) return
-
   try {
-    const res = await fetch(
-      `http://localhost:8000/api/v1/library/favorites/${comicId}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    )
-
+    const res = await fetch(`http://localhost:8000/api/v1/library/favorites/${comicId}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
     const data = await res.json()
-
     if (!res.ok) throw new Error(data.message || 'Gagal menghapus favorit.')
-
-    // Filter lokal — tidak perlu refetch ke server
-    favorites.value = favorites.value.filter(
-      (f) => f.comic?.id !== comicId
-    )
-
+    favorites.value = favorites.value.filter((f) => f.comic?.id !== comicId)
     showAlert('success', 'Komik dihapus dari favorit.')
   } catch (err) {
     showAlert('error', err.message)

@@ -15,7 +15,7 @@
     <!-- Error state -->
     <div v-else-if="error" class="max-w-4xl mx-auto px-6 py-12 text-center">
       <p class="text-red-500 text-sm mb-4">{{ error }}</p>
-      <button @click="router.back()" class="text-[#7C3AED] text-sm font-medium hover:underline">← Kembali</button>
+      <button @click="router.push('/')" class="text-[#7C3AED] text-sm font-medium hover:underline">← Kembali</button>
     </div>
 
     <!-- Content -->
@@ -23,7 +23,6 @@
 
       <!-- Banner / Hero Section -->
       <div class="relative h-56 md:h-72 overflow-hidden bg-gradient-to-br from-[#7C3AED] to-[#4F46E5]">
-        <!-- Banner image kalau ada -->
         <img
           v-if="comic.banner_url"
           :src="getMediaUrl(comic.banner_url)"
@@ -34,7 +33,7 @@
 
         <!-- Back button -->
         <button
-          @click="router.back()"
+          @click="router.push('/')"
           class="absolute top-4 left-4 z-10 flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -46,7 +45,6 @@
 
         <!-- Cover + Info Card -->
         <div class="flex gap-5 -mt-16 relative z-10 mb-6">
-          <!-- Cover -->
           <div class="w-28 h-40 md:w-36 md:h-52 rounded-xl overflow-hidden border-4 border-white shadow-xl shrink-0 bg-gray-200">
             <img
               v-if="comic.cover_url"
@@ -56,7 +54,6 @@
             />
           </div>
 
-          <!-- Info -->
           <div class="flex-1 pt-20 md:pt-24">
             <div class="flex flex-wrap gap-1.5 mb-2">
               <span
@@ -80,19 +77,26 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-5">
           <div class="flex items-center justify-between mb-3">
             <h2 class="font-bold text-gray-900">Sinopsis</h2>
+
+            <!-- Heart button bulat -->
             <button
               v-if="user"
               @click="toggleFavorite"
-              :disabled="favLoading"
-              class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold border transition-all"
+              :title="isFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit'"
+              class="w-9 h-9 flex items-center justify-center rounded-full transition-all duration-200"
               :class="isFavorite
-                ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'
-                : 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/20 hover:bg-[#7C3AED]/20'"
+                ? 'bg-red-500 text-white'
+                : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-400'"
             >
-              <svg class="w-4 h-4" :fill="isFavorite ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                :fill="isFavorite ? 'currentColor' : 'none'"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
-              {{ favLoading ? '...' : (isFavorite ? 'Hapus Favorit' : 'Tambah Favorit') }}
             </button>
           </div>
           <p class="text-sm text-gray-600 leading-relaxed">{{ comic.synopsis || 'Tidak ada sinopsis.' }}</p>
@@ -166,12 +170,6 @@ const isLoading = ref(true)
 const isLoadingChapters = ref(true)
 const error = ref('')
 const isFavorite = ref(false)
-const favLoading = ref(false)
-const comments = ref([])
-const newComment = ref('')
-const commentLoading = ref(false)
-const editingId = ref(null)
-const editContent = ref('')
 
 const getMediaUrl = (path) => {
   if (!path) return ''
@@ -189,7 +187,6 @@ const authHeaders = () => ({
   'Authorization': `Bearer ${token ?? ''}`
 })
 
-// Fetch comic detail
 const fetchComic = async () => {
   try {
     const res = await fetch(`http://localhost:8000/api/v1/comics/${comicId}`, {
@@ -205,7 +202,6 @@ const fetchComic = async () => {
   }
 }
 
-// Fetch chapters
 const fetchChapters = async () => {
   isLoadingChapters.value = true
   try {
@@ -223,7 +219,6 @@ const fetchChapters = async () => {
   }
 }
 
-// Cek apakah sudah favorit
 const checkFavorite = async () => {
   if (!user.value) return
   try {
@@ -237,10 +232,8 @@ const checkFavorite = async () => {
   } catch {}
 }
 
-// Toggle favorit
 const toggleFavorite = async () => {
   if (!user.value) return
-  favLoading.value = true
   try {
     if (isFavorite.value) {
       await fetch(`http://localhost:8000/api/v1/library/favorites/${comicId}`, {
@@ -257,218 +250,9 @@ const toggleFavorite = async () => {
     }
   } catch (e) {
     console.error('Toggle favorit gagal:', e.message)
-  } finally {
-    favLoading.value = false
   }
 }
 
-const fetchComments = async () => {
-
-if(!chapters.value.length)
-return
-
-
-try{
-
-const res=
-await fetch(
-`http://localhost:8000/api/v1/chapters/${chapters.value[0].id}/comments`,
-{
-headers:
-authHeaders()
-}
-)
-
-const data=
-await res.json()
-
-if(res.ok){
-
-comments.value=
-data.data
-||
-[]
-
-}
-
-}
-catch(err){
-
-console.log(err)
-
-}
-
-}
-
-
-
-const addComment=
-async()=>{
-
-if(
-!newComment.value.trim()
-)
-return
-
-
-commentLoading.value=true
-
-
-try{
-
-await fetch(
-
-`http://localhost:8000/api/v1/chapters/${chapters.value[0].id}/comments`,
-
-{
-
-method:'POST',
-
-headers:{
-
-...authHeaders(),
-
-'Content-Type':
-'application/json'
-
-},
-
-body:
-JSON.stringify({
-
-content:
-newComment.value
-
-})
-
-}
-
-)
-
-newComment.value=''
-
-fetchComments()
-
-}
-catch(err){
-
-console.log(err)
-
-}
-finally{
-
-commentLoading.value=false
-
-}
-
-}
-
-
-
-const startEdit=
-(comment)=>{
-
-editingId.value=
-comment.id
-
-editContent.value=
-comment.content
-
-}
-
-
-
-const updateComment=
-async(id)=>{
-
-try{
-
-await fetch(
-
-`http://localhost:8000/api/v1/comments/${id}`,
-
-{
-
-method:'PATCH',
-
-headers:{
-
-...authHeaders(),
-
-'Content-Type':
-'application/json'
-
-},
-
-body:
-JSON.stringify({
-
-content:
-editContent.value
-
-})
-
-}
-
-)
-
-editingId.value=
-null
-
-fetchComments()
-
-}
-catch(err){
-
-console.log(err)
-
-}
-
-}
-
-
-
-const deleteComment=
-async(id)=>{
-
-if(
-!confirm(
-'Hapus komentar?'
-)
-)
-return
-
-
-try{
-
-await fetch(
-
-`http://localhost:8000/api/v1/comments/${id}`,
-
-{
-
-method:
-'DELETE',
-
-headers:
-authHeaders()
-
-}
-
-)
-
-fetchComments()
-
-}
-catch(err){
-
-console.log(err)
-
-}
-
-}
-
-// Navigasi ke reader
 const readChapter = (chapter) => {
   router.push({
     name: 'chapter.read',
@@ -480,10 +264,9 @@ const readChapter = (chapter) => {
   })
 }
 
-onMounted(async()=>{
-await fetchComic()
-await fetchChapters()
-await checkFavorite()
-fetchComments()
+onMounted(async () => {
+  await fetchComic()
+  await fetchChapters()
+  await checkFavorite()
 })
 </script>

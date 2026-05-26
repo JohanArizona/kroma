@@ -84,7 +84,7 @@
       <section class="mb-10">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-            Popular Right Now
+            Populer Saat Ini
           </h2>
         </div>
 
