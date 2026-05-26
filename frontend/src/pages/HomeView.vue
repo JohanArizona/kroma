@@ -63,17 +63,13 @@
           leave-to-class="opacity-0 scale-95"
         >
           <div v-if="showLoginPrompt" class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
-
-            <!-- Icon -->
             <div class="w-14 h-14 rounded-full bg-[#7C3AED]/10 flex items-center justify-center mx-auto mb-4">
               <svg class="w-7 h-7 text-[#7C3AED]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-
             <h3 class="text-lg font-bold text-gray-900 mb-1">Masuk untuk Membaca</h3>
             <p class="text-sm text-gray-500 mb-6">Silahkan masuk atau daftar dulu untuk bisa menikmati komik di Kroma.</p>
-
             <div class="flex flex-col gap-2.5">
               <router-link
                 to="/login"
@@ -96,7 +92,6 @@
                 Nanti saja
               </button>
             </div>
-
           </div>
         </Transition>
       </div>
@@ -111,7 +106,6 @@
           <div class="absolute top-8 right-36 w-40 h-56 rounded-xl bg-white -rotate-3"></div>
           <div class="absolute -bottom-4 right-10 w-32 h-44 rounded-xl bg-white rotate-12"></div>
         </div>
-
         <div class="relative z-10 px-10 py-12 max-w-lg">
           <span class="inline-block text-xs font-semibold bg-white/20 text-white px-3 py-1 rounded-full mb-4 tracking-wide">
             ✦ Platform Komik Digital
@@ -122,16 +116,12 @@
           <p class="text-white/75 text-sm leading-relaxed mb-6">
             Temukan komik terbaik pilihan editor. Dari action, romance, hingga fantasy, semua ada di sini.
           </p>
-
-          <!-- Belum login -->
           <div v-if="!user" class="flex gap-3">
             <router-link to="/register"
               class="px-5 py-2.5 bg-white text-[#7C3AED] text-sm font-semibold rounded-lg hover:bg-gray-100 transition">
               Mulai Membaca
             </router-link>
           </div>
-
-          <!-- Sudah login -->
           <div v-else class="flex gap-3">
             <button
               @click="scrollToGenre"
@@ -145,9 +135,7 @@
       <!-- Popular Right Now -->
       <section class="mb-10">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-            Populer Saat Ini
-          </h2>
+          <h2 class="text-xl font-bold text-gray-900">Populer Saat Ini</h2>
         </div>
 
         <div v-if="isLoadingPopular" class="flex gap-4 overflow-hidden">
@@ -174,19 +162,15 @@
               @click="handleComicClick(comic)"
             />
 
+            <!-- Heart button tanpa animasi loading -->
             <button
               v-if="user"
               @click.stop="toggleFavorite(comic)"
-              :disabled="loadingFavorites.has(comic.id)"
               :title="favoriteIds.has(comic.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'"
               class="heart-btn absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-all duration-200"
               :class="{ 'opacity-100 !bg-red-500': favoriteIds.has(comic.id) }"
             >
-              <svg v-if="loadingFavorites.has(comic.id)" class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-              </svg>
-              <svg v-else-if="favoriteIds.has(comic.id)" class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <svg v-if="favoriteIds.has(comic.id)" class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
               <svg v-else class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -200,9 +184,7 @@
       <!-- Genre Filter -->
       <section id="genre-section">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-            Jelajahi Genre
-          </h2>
+          <h2 class="text-xl font-bold text-gray-900">Jelajahi Genre</h2>
         </div>
 
         <div v-if="isLoadingGenres" class="flex gap-2 mb-6 flex-wrap">
@@ -215,9 +197,7 @@
             selectedGenre === null
               ? 'bg-[#7C3AED] text-white border-[#7C3AED]'
               : 'bg-white text-gray-600 border-gray-200 hover:border-[#7C3AED] hover:text-[#7C3AED]'
-          ]">
-            All
-          </button>
+          ]">All</button>
           <button
             v-for="genre in genres"
             :key="genre.id"
@@ -228,9 +208,7 @@
                 ? 'bg-[#7C3AED] text-white border-[#7C3AED]'
                 : 'bg-white text-gray-600 border-gray-200 hover:border-[#7C3AED] hover:text-[#7C3AED]'
             ]"
-          >
-            {{ genre.name }}
-          </button>
+          >{{ genre.name }}</button>
         </div>
 
         <div
@@ -263,19 +241,15 @@
               @click="handleComicClick(comic)"
             />
 
+            <!-- Heart button tanpa animasi loading -->
             <button
               v-if="user"
               @click.stop="toggleFavorite(comic)"
-              :disabled="loadingFavorites.has(comic.id)"
               :title="favoriteIds.has(comic.id) ? 'Hapus dari favorit' : 'Tambah ke favorit'"
               class="heart-btn absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-all duration-200"
               :class="{ 'opacity-100 !bg-red-500': favoriteIds.has(comic.id) }"
             >
-              <svg v-if="loadingFavorites.has(comic.id)" class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-              </svg>
-              <svg v-else-if="favoriteIds.has(comic.id)" class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <svg v-if="favoriteIds.has(comic.id)" class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
               <svg v-else class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -321,7 +295,6 @@ const getAuthHeaders = () => ({
   'Authorization': `Bearer ${localStorage.getItem('kroma_token') ?? ''}`
 })
 
-// Toast state
 const toastVisible = ref(false)
 const toastMessage = ref('')
 const toastType = ref('success')
@@ -335,24 +308,19 @@ const triggerToast = (message, type = 'success') => {
   toastTimer = setTimeout(() => { toastVisible.value = false }, 3000)
 }
 
-// Modal login prompt
 const showLoginPrompt = ref(false)
 
-// Popular comics state
 const popularComics = ref([])
 const isLoadingPopular = ref(true)
 const errorPopular = ref('')
 
-// Genres state
 const genres = ref([])
 const isLoadingGenres = ref(true)
 
-// Genre filter state
 const selectedGenre = ref(null)
 const genreComics = ref([])
 const isLoadingGenreComics = ref(false)
 
-// All comics (paginated)
 const allComics = ref([])
 const isLoadingAll = ref(false)
 const currentPage = ref(1)
@@ -535,7 +503,6 @@ const loadMore = () => {
   fetchAllComics(currentPage.value)
 }
 
-// Cek login dulu sebelum navigasi
 const handleComicClick = (comic) => {
   if (!user.value) {
     showLoginPrompt.value = true
