@@ -40,6 +40,68 @@
       </div>
     </Transition>
 
+    <!-- Modal Login Prompt -->
+    <Transition
+      enter-active-class="transition ease-out duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition ease-in duration-150"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="showLoginPrompt"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        @click.self="showLoginPrompt = false"
+      >
+        <Transition
+          enter-active-class="transition ease-out duration-200"
+          enter-from-class="opacity-0 scale-95"
+          enter-to-class="opacity-100 scale-100"
+          leave-active-class="transition ease-in duration-150"
+          leave-from-class="opacity-100 scale-100"
+          leave-to-class="opacity-0 scale-95"
+        >
+          <div v-if="showLoginPrompt" class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
+
+            <!-- Icon -->
+            <div class="w-14 h-14 rounded-full bg-[#7C3AED]/10 flex items-center justify-center mx-auto mb-4">
+              <svg class="w-7 h-7 text-[#7C3AED]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-900 mb-1">Masuk untuk Membaca</h3>
+            <p class="text-sm text-gray-500 mb-6">Silahkan masuk atau daftar dulu untuk bisa menikmati komik di Kroma.</p>
+
+            <div class="flex flex-col gap-2.5">
+              <router-link
+                to="/login"
+                class="w-full py-2.5 bg-[#7C3AED] text-white text-sm font-semibold rounded-lg hover:bg-[#6D28D9] transition"
+                @click="showLoginPrompt = false"
+              >
+                Masuk
+              </router-link>
+              <router-link
+                to="/register"
+                class="w-full py-2.5 border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition"
+                @click="showLoginPrompt = false"
+              >
+                Daftar Sekarang
+              </router-link>
+              <button
+                @click="showLoginPrompt = false"
+                class="text-sm text-gray-400 hover:text-gray-600 transition mt-1"
+              >
+                Nanti saja
+              </button>
+            </div>
+
+          </div>
+        </Transition>
+      </div>
+    </Transition>
+
     <main class="max-w-7xl mx-auto px-6 py-8">
 
       <!-- Hero Banner -->
@@ -112,10 +174,6 @@
               @click="handleComicClick(comic)"
             />
 
-            <!--
-              Heart button: opacity-0 by default, muncul saat hover via CSS.
-              Jika sudah difavoritkan → paksa opacity-100 + bg merah.
-            -->
             <button
               v-if="user"
               @click.stop="toggleFavorite(comic)"
@@ -139,7 +197,7 @@
         </div>
       </section>
 
-      <!-- Genre Filter — id dipakai oleh scrollToGenre() -->
+      <!-- Genre Filter -->
       <section id="genre-section">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -175,7 +233,6 @@
           </button>
         </div>
 
-        <!-- Skeleton: loading genre spesifik atau fresh load tab "All" -->
         <div
           v-if="isLoadingGenreComics || (selectedGenre === null && isLoadingAll && allComics.length === 0)"
           class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
@@ -228,7 +285,7 @@
           </div>
         </div>
 
-        <!-- Load More: hanya di tab "All", hanya jika masih ada halaman -->
+        <!-- Load More -->
         <div v-if="selectedGenre === null && currentPage < lastPage" class="mt-6 text-center">
           <button
             @click="loadMore"
@@ -252,14 +309,12 @@ import ComicCard from '../components/ui/ComicCard.vue'
 
 const router = useRouter()
 
-// User dibaca dari localStorage — null berarti guest
 const user = ref(null)
 try {
   const raw = localStorage.getItem('kroma_user')
   if (raw) user.value = JSON.parse(raw)
 } catch { }
 
-// Token disimpan terpisah di 'kroma_token', bukan di dalam user object
 const getAuthHeaders = () => ({
   'Accept': 'application/json',
   'Content-Type': 'application/json',
@@ -279,6 +334,9 @@ const triggerToast = (message, type = 'success') => {
   toastVisible.value = true
   toastTimer = setTimeout(() => { toastVisible.value = false }, 3000)
 }
+
+// Modal login prompt
+const showLoginPrompt = ref(false)
 
 // Popular comics state
 const popularComics = ref([])
@@ -300,9 +358,6 @@ const isLoadingAll = ref(false)
 const currentPage = ref(1)
 const lastPage = ref(1)
 
-// favoriteIds: Set untuk lookup O(1) di template
-// loadingFavorites: Set comic_id yang sedang proses add/remove
-// Keduanya di-reassign (bukan .add/.delete) agar Vue reaktif
 const favoriteIds = ref(new Set())
 const loadingFavorites = ref(new Set())
 
@@ -319,12 +374,6 @@ const mapComic = (comic) => ({
 
 const scrollToGenre = () => {
   document.getElementById('genre-section')?.scrollIntoView({ behavior: 'smooth' })
-}
-
-const logout = () => {
-  localStorage.removeItem('kroma_token')
-  localStorage.removeItem('kroma_user')
-  router.push('/login')
 }
 
 const fetchPopular = async () => {
@@ -357,7 +406,6 @@ const fetchGenres = async () => {
   }
 }
 
-// page=1 → replace allComics (fresh/reset), page>1 → append (load more)
 const fetchAllComics = async (page = 1) => {
   isLoadingAll.value = true
   try {
@@ -367,13 +415,11 @@ const fetchAllComics = async (page = 1) => {
     )
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Gagal memuat komik.')
-
     if (page === 1) {
       allComics.value = data.data
     } else {
       allComics.value.push(...data.data)
     }
-
     lastPage.value = data.meta.last_page
   } catch (error) {
     console.error('Gagal memuat semua komik:', error.message)
@@ -420,10 +466,8 @@ const toggleFavorite = async (comic) => {
   const comicId = comic.id
   const isAlreadyFav = favoriteIds.value.has(comicId)
 
-  // Tandai sedang loading
   loadingFavorites.value = new Set([...loadingFavorites.value, comicId])
 
-  // Optimistic update: ubah UI dulu, rollback jika API gagal
   const optimisticSet = new Set(favoriteIds.value)
   if (isAlreadyFav) {
     optimisticSet.delete(comicId)
@@ -449,7 +493,6 @@ const toggleFavorite = async (comic) => {
 
     const data = await res.json()
 
-    // 409 = sudah ada di favorit (race condition), anggap sukses
     if (!res.ok && res.status !== 409) {
       throw new Error(data.message || 'Gagal mengubah favorit.')
     }
@@ -461,7 +504,6 @@ const toggleFavorite = async (comic) => {
       'success'
     )
   } catch (error) {
-    // Rollback jika gagal
     const rollbackSet = new Set(favoriteIds.value)
     if (isAlreadyFav) {
       rollbackSet.add(comicId)
@@ -469,7 +511,6 @@ const toggleFavorite = async (comic) => {
       rollbackSet.delete(comicId)
     }
     favoriteIds.value = rollbackSet
-
     triggerToast(error.message || 'Gagal mengubah favorit.', 'error')
     console.error('Toggle favorit gagal:', error.message)
   } finally {
@@ -482,7 +523,6 @@ const toggleFavorite = async (comic) => {
 const selectGenre = (genreName) => {
   selectedGenre.value = genreName
   currentPage.value = 1
-
   if (genreName === null) {
     fetchAllComics(1)
     return
@@ -495,7 +535,12 @@ const loadMore = () => {
   fetchAllComics(currentPage.value)
 }
 
+// Cek login dulu sebelum navigasi
 const handleComicClick = (comic) => {
+  if (!user.value) {
+    showLoginPrompt.value = true
+    return
+  }
   router.push(`/comics/${comic.id}`)
 }
 
@@ -516,8 +561,6 @@ onMounted(() => {
   scrollbar-width: none;
 }
 
-/* Heart button tersembunyi by default, muncul saat parent di-hover.
-   Jika sudah favorit, template menambahkan opacity-100 via class binding. */
 .heart-btn {
   opacity: 0;
 }
