@@ -26,7 +26,7 @@
           :class="[$route.path.includes('/comics') ? '' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900']"
         >
           <Library class="w-5 h-5" />
-          Master Comics
+          Manajemen Komik
         </router-link>
       </nav>
 

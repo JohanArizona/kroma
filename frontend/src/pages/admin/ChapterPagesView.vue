@@ -17,16 +17,16 @@
       @confirm="executeDeletePage"
     />
 
-    <!-- Breadcrumb & Header -->
+    <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
-          <router-link to="/admin/comics" class="hover:text-[#7C3AED] transition-colors">Manajemen Komik</router-link>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          <router-link :to="`/admin/comics/${comicId}/chapters`" class="hover:text-[#7C3AED] transition-colors truncate max-w-[150px]">Kelola Episode</router-link>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          <span class="text-gray-900 font-medium">Halaman Episode {{ chapterNumber }}</span>
-        </div>
+        <span
+          @click="router.push(`/admin/comics/${comicId}/chapters`)"
+          class="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 cursor-pointer transition-colors mb-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+          Kelola Episode
+        </span>
         <h1 class="text-2xl font-bold text-gray-900">Kelola Halaman Komik</h1>
         <p class="text-gray-500 text-sm mt-1">Upload, lihat, hapus, dan atur urutan halaman episode ini.</p>
       </div>
@@ -81,7 +81,7 @@
         <div class="flex justify-end gap-3 pt-2">
           <Button type="button" variant="outline" @click="clearQueue" class="rounded-lg border-gray-300 h-10 px-4 text-sm">Bersihkan</Button>
           <Button @click="submitUpload" :disabled="isUploading" class="rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white h-10 px-5 text-sm shadow-sm">
-            {{ isUploading ? `Mengunggah...` : `Upload ${uploadQueue.length} Halaman` }}
+            {{ isUploading ? 'Mengunggah...' : `Upload ${uploadQueue.length} Halaman` }}
           </Button>
         </div>
       </div>
@@ -132,12 +132,10 @@
               class="w-full h-full object-cover"
             />
 
-            <!-- Overlay nomor halaman -->
             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2">
               <span class="text-white text-xs font-bold">{{ page.page_number }}</span>
             </div>
 
-            <!-- Tombol hapus per gambar — muncul saat hover, tersembunyi saat mode reorder -->
             <button
               v-if="!isReordering"
               @click.stop="confirmDeletePage(page)"
@@ -147,13 +145,11 @@
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
 
-            <!-- Drag handle indicator — hanya saat mode reorder -->
             <div v-if="isReordering" class="absolute top-1.5 right-1.5 w-5 h-5 bg-amber-400 rounded text-white flex items-center justify-center opacity-80">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -173,10 +169,8 @@ const router = useRouter()
 const route = useRoute()
 
 const chapterId = route.params.chapterId
+const comicId = route.params.comicId
 const token = localStorage.getItem('kroma_token')
-
-const comicId = route.query.comicId || ''
-const chapterNumber = ref(route.query.chapterNumber || '?')
 
 const pages = ref([])
 const isLoading = ref(true)
@@ -195,7 +189,6 @@ const getMediaUrl = (path) => {
   return `http://localhost:8000/storage/${path}`
 }
 
-// === FETCH PAGES ===
 const fetchPages = async () => {
   isLoading.value = true
   try {
@@ -215,7 +208,6 @@ const fetchPages = async () => {
   }
 }
 
-// === UPLOAD LOGIC ===
 const uploadQueue = ref([])
 const isUploading = ref(false)
 const isDragging = ref(false)
@@ -228,10 +220,7 @@ const processFiles = (fileList) => {
 }
 
 const handleFileSelect = (e) => processFiles(e.target.files)
-const handleDrop = (e) => {
-  isDragging.value = false
-  processFiles(e.dataTransfer.files)
-}
+const handleDrop = (e) => { isDragging.value = false; processFiles(e.dataTransfer.files) }
 
 const removeFromQueue = (idx) => {
   URL.revokeObjectURL(uploadQueue.value[idx].preview)
@@ -248,9 +237,7 @@ const submitUpload = async () => {
   isUploading.value = true
   try {
     const formData = new FormData()
-    uploadQueue.value.forEach(item => {
-      formData.append('pages[]', item.file)
-    })
+    uploadQueue.value.forEach(item => formData.append('pages[]', item.file))
     const res = await fetch(`http://localhost:8000/api/v1/chapters/${chapterId}/pages`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
@@ -268,8 +255,6 @@ const submitUpload = async () => {
   }
 }
 
-// === DELETE PER HALAMAN ===
-// Menggunakan page_number sebagai identifier (lebih reliable dari id)
 const showDeletePageModal = ref(false)
 const pageToDelete = ref(null)
 
@@ -283,10 +268,7 @@ const executeDeletePage = async () => {
   try {
     const res = await fetch(
       `http://localhost:8000/api/v1/chapters/${chapterId}/pages/${pageToDelete.value.page_number}`,
-      {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
-      }
+      { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } }
     )
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Gagal menghapus halaman')
@@ -297,14 +279,11 @@ const executeDeletePage = async () => {
   }
 }
 
-// === REORDER LOGIC ===
 const isReordering = ref(false)
 const dragFromIdx = ref(null)
 
 const toggleReorder = async () => {
-  if (isReordering.value) {
-    await saveReorder()
-  }
+  if (isReordering.value) await saveReorder()
   isReordering.value = !isReordering.value
 }
 
@@ -321,19 +300,10 @@ const onDragEnd = () => { dragFromIdx.value = null }
 
 const saveReorder = async () => {
   try {
-    const payload = {
-      pages: pages.value.map(p => ({
-        id: p.id,
-        page_number: p.page_number
-      }))
-    }
+    const payload = { pages: pages.value.map(p => ({ id: p.id, page_number: p.page_number })) }
     const res = await fetch(`http://localhost:8000/api/v1/chapters/${chapterId}/pages/reorder`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
       body: JSON.stringify(payload)
     })
     const data = await res.json()
@@ -346,10 +316,7 @@ const saveReorder = async () => {
 }
 
 onMounted(() => {
-  if (!token) {
-    router.push('/login')
-    return
-  }
+  if (!token) { router.push('/login'); return }
   fetchPages()
 })
 </script>

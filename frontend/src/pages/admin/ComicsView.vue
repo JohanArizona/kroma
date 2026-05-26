@@ -1,5 +1,5 @@
 <template>
-  <AdminLayout title="Master Komik">
+  <AdminLayout title="Manajemen Komik">
     
     <AlertToast 
       :show="alert.show" 
@@ -21,7 +21,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Manajemen Komik</h1>
-        <p class="text-gray-500 text-sm mt-1">Kelola katalog utama, metadata, dan sampul komik.</p>
+        <p class="text-gray-500 text-sm mt-1">Klik baris komik untuk kelola episode. Kelola katalog, metadata, dan sampul.</p>
       </div>
       <Button @click="openModal('create')" class="rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white shadow-sm h-11 px-5 shrink-0">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -45,7 +45,6 @@
         </div>
       </div>
 
-      <!-- Tabel Lengkap Sesuai Figma & JSON Backend -->
       <div class="overflow-x-auto">
         <table class="w-full text-sm text-left">
           <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
@@ -65,8 +64,14 @@
               <td colspan="5" class="px-6 py-10 text-center text-gray-500">Tidak ada komik ditemukan.</td>
             </tr>
             
-            <tr v-else v-for="c in filteredComics" :key="c.id" class="hover:bg-gray-50/80 transition-colors bg-white">
-              <!-- Info Komik (Cover, Judul, Author) -->
+            <tr
+              v-else
+              v-for="c in filteredComics"
+              :key="c.id"
+              class="hover:bg-violet-50/50 transition-colors bg-white cursor-pointer"
+              @click="router.push(`/admin/comics/${c.id}/chapters`)"
+            >
+              <!-- Info Komik -->
               <td class="px-6 py-4">
                 <div class="flex items-center gap-4">
                   <div class="w-10 h-14 rounded-md overflow-hidden border border-gray-200 shrink-0 bg-gray-100">
@@ -78,12 +83,10 @@
                   </div>
                 </div>
               </td>
-              <!-- Genre List -->
+              <!-- Genre -->
               <td class="px-6 py-4 text-gray-600">
                 <div class="flex flex-wrap gap-1">
-                  <span v-for="g in c.genres" :key="g.id" class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">
-                    {{ g.name }}
-                  </span>
+                  <span v-for="g in c.genres" :key="g.id" class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">{{ g.name }}</span>
                   <span v-if="!c.genres || c.genres.length === 0" class="text-xs text-gray-400">-</span>
                 </div>
               </td>
@@ -91,29 +94,14 @@
               <td class="px-6 py-4">
                 <span :class="[
                   'px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide border',
-                  c.status === 'ongoing' ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/20' : 
-                  'bg-green-50 text-green-700 border-green-200'
-                ]">
-                  {{ c.status }}
-                </span>
+                  c.status === 'ongoing' ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/20' : 'bg-green-50 text-green-700 border-green-200'
+                ]">{{ c.status }}</span>
               </td>
-              <!-- Tanggal Update -->
-              <td class="px-6 py-4 text-gray-500 text-xs">
-                {{ formatDate(c.updated_at) }}
-              </td>
-              <!-- Aksi / Tombol -->
-              <td class="px-6 py-4 text-right">
+              <!-- Tanggal -->
+              <td class="px-6 py-4 text-gray-500 text-xs">{{ formatDate(c.updated_at) }}</td>
+              <!-- Aksi -->
+              <td class="px-6 py-4 text-right" @click.stop>
                 <div class="inline-flex items-center justify-end gap-2">
-                  <!-- TOMBOL KELOLA EPISODE — disambungkan ke ChaptersView -->
-                  <button
-                    @click="router.push({ name: 'admin.chapters', params: { comicId: c.id } })"
-                    title="Kelola Episode"
-                    class="w-8 h-8 rounded-lg border border-gray-200 hover:bg-[#7C3AED]/10 hover:border-[#7C3AED]/30 hover:text-[#7C3AED] flex items-center justify-center text-gray-500 transition-colors"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                    </svg>
-                  </button>
                   <button @click="openModal('edit', c)" title="Edit Komik" class="w-8 h-8 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 flex items-center justify-center text-gray-500 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                   </button>
@@ -128,7 +116,7 @@
       </div>
     </div>
 
-    <!-- MODAL FORM KOMIK (Create & Edit) -->
+    <!-- MODAL FORM KOMIK -->
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="opacity-0"
@@ -150,7 +138,6 @@
           <form @submit.prevent="submitForm" class="flex flex-col overflow-hidden">
             <div class="p-6 overflow-y-auto space-y-6">
               
-              <!-- PREVIEW GAMBAR GEDE -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Cover Upload -->
                 <div class="space-y-2">
@@ -201,12 +188,10 @@
                   <label class="text-sm font-semibold text-gray-700">Judul Komik</label>
                   <input v-model="form.title" type="text" placeholder="Masukkan judul..." class="flex h-11 w-full rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-[#7C3AED]/50 outline-none transition-shadow" required />
                 </div>
-                
                 <div class="space-y-1.5">
                   <label class="text-sm font-semibold text-gray-700">Penulis / Author</label>
                   <input v-model="form.author" type="text" placeholder="Nama kreator..." class="flex h-11 w-full rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-[#7C3AED]/50 outline-none transition-shadow" required />
                 </div>
-                
                 <div class="space-y-1.5">
                   <label class="text-sm font-semibold text-gray-700">Status Publikasi</label>
                   <select v-model="form.status" class="flex h-11 w-full rounded-lg border border-gray-300 px-3 text-sm focus:ring-2 focus:ring-[#7C3AED]/50 outline-none bg-white transition-shadow" required>
@@ -216,15 +201,13 @@
                 </div>
               </div>
 
-              <!-- Pilihan Genre (Checkboxes) -->
+              <!-- Genre -->
               <div class="space-y-2">
                 <label class="text-sm font-semibold text-gray-700 block">Pilih Genre <span class="text-red-500">*</span></label>
                 <div class="flex flex-wrap gap-2">
                   <label v-for="g in availableGenres" :key="g" class="cursor-pointer">
                     <input type="checkbox" :value="g" v-model="form.genres" class="peer hidden" />
-                    <div class="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 select-none transition-colors peer-checked:bg-[#7C3AED] peer-checked:text-white peer-checked:border-[#7C3AED] hover:bg-gray-50">
-                      {{ g }}
-                    </div>
+                    <div class="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 select-none transition-colors peer-checked:bg-[#7C3AED] peer-checked:text-white peer-checked:border-[#7C3AED] hover:bg-gray-50">{{ g }}</div>
                   </label>
                 </div>
                 <p v-if="form.genres.length === 0" class="text-xs text-red-500 mt-1">Minimal pilih 1 genre.</p>
@@ -235,7 +218,6 @@
                 <label class="text-sm font-semibold text-gray-700">Sinopsis</label>
                 <textarea v-model="form.synopsis" placeholder="Tulis ringkasan cerita yang menarik..." class="w-full min-h-[120px] px-3 py-3 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-[#7C3AED]/50 outline-none transition-shadow" required></textarea>
               </div>
-
             </div>
             
             <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-xl shrink-0">
@@ -284,36 +266,34 @@ const getMediaUrl = (path) => {
 
 const formatDate = (dateString) => {
   if (!dateString) return '-'
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(date)
+  return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(dateString))
 }
 
 const filteredComics = computed(() => {
   if (!searchQuery.value) return comics.value
   const query = searchQuery.value.toLowerCase()
-  return comics.value.filter(c => 
-    c.title.toLowerCase().includes(query) || 
+  return comics.value.filter(c =>
+    c.title.toLowerCase().includes(query) ||
     c.author.toLowerCase().includes(query)
   )
 })
 
-// === FETCH DATA ===
 const fetchComics = async () => {
   isLoading.value = true
   try {
-    const res = await fetch(`http://localhost:8000/api/v1/search?query=${encodeURIComponent(searchQuery.value)}`, {
+    const res = await fetch('http://localhost:8000/api/v1/comics', {
       headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
     })
     const data = await res.json()
-    if (res.ok) comics.value = data.data
+    if (!res.ok) throw new Error(data.message || 'Gagal memuat daftar komik.')
+    comics.value = data.data
   } catch (error) {
-    showAlert('error', 'Gagal memuat daftar komik.')
+    showAlert('error', error.message)
   } finally {
     isLoading.value = false
   }
 }
 
-// === FORM LOGIC ===
 const showFormModal = ref(false)
 const modalMode = ref('create')
 const isSaving = ref(false)
@@ -336,7 +316,7 @@ const openModal = (mode, comicData = null) => {
   formFiles.banner = null
   previews.cover = null
   previews.banner = null
-  
+
   if (mode === 'edit' && comicData) {
     activeComicId.value = comicData.id
     form.title = comicData.title
@@ -359,19 +339,15 @@ const openModal = (mode, comicData = null) => {
 
 const submitForm = async () => {
   isSaving.value = true
-  
   try {
     if (modalMode.value === 'create') {
-      if (!formFiles.cover) throw new Error("Cover komik wajib diunggah.")
-      
+      if (!formFiles.cover) throw new Error('Cover komik wajib diunggah.')
       const formData = new FormData()
       formData.append('title', form.title)
       formData.append('author', form.author)
       formData.append('status', form.status)
       formData.append('synopsis', form.synopsis)
-      form.genres.forEach(genre => {
-        formData.append('genres[]', genre)
-      })
+      form.genres.forEach(genre => formData.append('genres[]', genre))
       formData.append('cover', formFiles.cover)
       if (formFiles.banner) formData.append('banner', formFiles.banner)
 
@@ -383,7 +359,7 @@ const submitForm = async () => {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Gagal menambahkan komik')
       showAlert('success', 'Komik berhasil ditambahkan!')
-      
+
     } else {
       const resMeta = await fetch(`http://localhost:8000/api/v1/comics/${activeComicId.value}`, {
         method: 'PATCH',
@@ -397,7 +373,6 @@ const submitForm = async () => {
         mediaData.append('_method', 'PATCH')
         if (formFiles.cover) mediaData.append('cover', formFiles.cover)
         if (formFiles.banner) mediaData.append('banner', formFiles.banner)
-
         const resMedia = await fetch(`http://localhost:8000/api/v1/comics/${activeComicId.value}/media`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
@@ -407,10 +382,9 @@ const submitForm = async () => {
       }
       showAlert('success', 'Data komik berhasil diperbarui!')
     }
-    
+
     showFormModal.value = false
     await fetchComics()
-    
   } catch (error) {
     showAlert('error', error.message)
   } finally {
@@ -418,7 +392,6 @@ const submitForm = async () => {
   }
 }
 
-// === DELETE LOGIC ===
 const showDeleteModal = ref(false)
 const comicToDelete = ref(null)
 
@@ -435,7 +408,6 @@ const executeDelete = async () => {
       headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
     })
     if (!res.ok) throw new Error('Gagal menghapus komik')
-    
     showAlert('success', 'Komik berhasil dihapus!')
     await fetchComics()
   } catch (error) {
