@@ -8,17 +8,16 @@
       </div>
     </div>
 
-    <!-- Alert Error (Jika ada masalah saat ambil data) -->
+    <!-- Alert Error -->
     <div v-if="errorMessage" class="p-4 bg-red-50 text-red-600 rounded-lg border border-red-200 text-sm mb-6 flex items-center gap-2">
       <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
       {{ errorMessage }}
     </div>
 
-    <!-- KARTU STATISTIK (Data dari /dashboard/stats) -->
+    <!-- KARTU STATISTIK -->
     <div v-if="isLoadingStats" class="text-gray-500 text-sm mb-6 animate-pulse">Memuat statistik...</div>
     <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
       
-      <!-- Card 1: Total Users -->
       <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col">
         <div class="flex items-center justify-between mb-4">
           <span class="text-sm font-medium text-gray-500">Total Pengguna</span>
@@ -29,7 +28,6 @@
         <div class="text-3xl font-bold text-gray-900">{{ stats.total_users }}</div>
       </div>
 
-      <!-- Card 2: Total Comics -->
       <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col">
         <div class="flex items-center justify-between mb-4">
           <span class="text-sm font-medium text-gray-500">Master Komik</span>
@@ -40,7 +38,6 @@
         <div class="text-3xl font-bold text-gray-900">{{ stats.total_comics }}</div>
       </div>
 
-      <!-- Card 3: Total Chapters -->
       <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col">
         <div class="flex items-center justify-between mb-4">
           <span class="text-sm font-medium text-gray-500">Total Episode</span>
@@ -53,8 +50,8 @@
 
     </div>
 
-    <!-- TABEL KOMIK TERPOPULER (Data dari /discovery/popular) -->
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <!-- TABEL KOMIK TERPOPULER -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-6">
       <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
         <h3 class="font-bold text-gray-900">Komik Terpopuler</h3>
         <router-link to="/admin/comics" class="text-sm text-[#7C3AED] hover:underline font-medium">Lihat Semua Komik</router-link>
@@ -64,7 +61,6 @@
         <div v-if="isLoadingPopular" class="p-8 text-sm text-gray-500 text-center animate-pulse">Memuat daftar komik...</div>
         <div v-else-if="popularComics.length === 0" class="p-8 text-sm text-gray-500 text-center">Belum ada komik yang ditambahkan.</div>
         
-        <!-- List Komik -->
         <div v-else v-for="(comic, index) in popularComics" :key="comic.id" class="px-6 py-4 flex items-center gap-5 hover:bg-gray-50/50 transition">
           <span class="w-6 text-sm font-bold text-gray-400 text-center">{{ index + 1 }}</span>
           
@@ -85,6 +81,65 @@
             <div class="text-[11px] text-gray-500 mt-0.5">Disimpan</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- AKSI CEPAT -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="px-6 py-5 border-b border-gray-100">
+        <h3 class="font-bold text-gray-900">Aksi Cepat</h3>
+        <p class="text-xs text-gray-400 mt-0.5">Navigasi langsung ke halaman yang sering diakses.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4">
+        
+        <!-- Tambah Komik Baru -->
+        <button
+          @click="router.push('/admin/comics')"
+          class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-[#7C3AED]/30 hover:bg-[#7C3AED]/5 transition-colors text-left group"
+        >
+          <div class="w-10 h-10 rounded-lg bg-[#7C3AED]/10 flex items-center justify-center text-[#7C3AED] shrink-0 group-hover:bg-[#7C3AED]/20 transition-colors">
+            <BookOpen class="w-5 h-5" />
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900">Manajemen Komik</p>
+            <p class="text-xs text-gray-400 mt-0.5">Tambah, edit, dan hapus komik</p>
+          </div>
+          <svg class="w-4 h-4 text-gray-300 ml-auto group-hover:text-[#7C3AED] transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+        <!-- Kelola Episode -->
+        <button
+          @click="router.push('/admin/comics')"
+          class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors text-left group"
+        >
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 group-hover:bg-emerald-100 transition-colors">
+            <FileStack class="w-5 h-5" />
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900">Kelola Episode</p>
+            <p class="text-xs text-gray-400 mt-0.5">Pilih komik lalu kelola chapter</p>
+          </div>
+          <svg class="w-4 h-4 text-gray-300 ml-auto group-hover:text-emerald-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+       
+
+        <!-- Refresh Data -->
+        <button
+          @click="refreshData"
+          :disabled="isLoadingStats || isLoadingPopular"
+          class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 group-hover:bg-amber-100 transition-colors">
+            <svg class="w-5 h-5" :class="{ 'animate-spin': isLoadingStats || isLoadingPopular }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900">Refresh Data</p>
+            <p class="text-xs text-gray-400 mt-0.5">Perbarui statistik dan daftar komik</p>
+          </div>
+          <svg class="w-4 h-4 text-gray-300 ml-auto group-hover:text-amber-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
 
       </div>
     </div>
@@ -101,27 +156,22 @@ import ImageWithFallback from '../../components/ui/ImageWithFallback.vue'
 
 const router = useRouter()
 
-// States untuk API Dashboard Stats
 const stats = ref({ total_users: 0, total_comics: 0, total_chapters: 0 })
 const isLoadingStats = ref(true)
 
-// States untuk API Popular Comics
 const popularComics = ref([])
 const isLoadingPopular = ref(true)
 
 const errorMessage = ref('')
 
-// Helper untuk render gambar komik dari Laravel Storage
 const getCoverUrl = (path) => {
   if (!path) return ''
-  // Kalau path-nya sudah URL lengkap, return langsung
   if (path.startsWith('http')) return path
-  // Kalau berupa path lokal, tambahkan base url
   return `http://localhost:8000/storage/${path}`
 }
 
-// Fetch 1: Mengambil Data Statistik Global
 const fetchStats = async (token) => {
+  isLoadingStats.value = true
   try {
     const res = await fetch('http://localhost:8000/api/v1/dashboard/stats', {
       headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
@@ -140,16 +190,14 @@ const fetchStats = async (token) => {
   }
 }
 
-// Fetch 2: Mengambil Komik Terpopuler
 const fetchPopularComics = async () => {
+  isLoadingPopular.value = true
   try {
-    // Endpoint popular bersifat public (tidak butuh Bearer token)
     const res = await fetch('http://localhost:8000/api/v1/discovery/popular', {
       headers: { 'Accept': 'application/json' }
     })
     const data = await res.json()
     if (res.ok) {
-      // Tampilkan maksimal 5 teratas di dashboard
       popularComics.value = data.data.slice(0, 5)
     }
   } catch (error) {
@@ -159,14 +207,24 @@ const fetchPopularComics = async () => {
   }
 }
 
+const refreshData = () => {
+  const token = localStorage.getItem('kroma_token')
+  if (!token) return
+  errorMessage.value = ''
+  fetchStats(token)
+  fetchPopularComics()
+}
+
+const openFrontend = () => {
+  window.open('/', '_blank')
+}
+
 onMounted(() => {
   const token = localStorage.getItem('kroma_token')
   if (!token) {
     router.push('/login')
     return
   }
-  
-  // Panggil kedua API secara paralel
   fetchStats(token)
   fetchPopularComics()
 })
