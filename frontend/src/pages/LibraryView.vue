@@ -69,7 +69,7 @@
         <div
           v-for="item in favorites"
           :key="item.favorite_id"
-          class="relative group cursor-pointer"
+          class="comic-wrapper relative group cursor-pointer"
           @click="goToComic(item.comic?.id)"
         >
           <div class="relative aspect-[2/3] rounded-md overflow-hidden border border-gray-200 mb-2 bg-gray-100">
@@ -79,15 +79,19 @@
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               @error="handleImgError"
             />
-            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-              <button
-                @click.stop="confirmRemove(item)"
-                class="px-3 py-1.5 bg-white text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 transition-colors shadow"
-              >
-                Hapus
-              </button>
-            </div>
           </div>
+
+          <!-- Heart button -->
+          <button
+            @click.stop="confirmRemove(item)"
+            title="Hapus dari favorit"
+            class="heart-btn absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-red-500 backdrop-blur-sm transition-all duration-200"
+          >
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </button>
+
           <h3 class="font-semibold text-gray-900 text-sm truncate">{{ item.comic?.title }}</h3>
           <p class="text-xs text-gray-400 truncate">Ditambahkan {{ formatDate(item.added_at) }}</p>
         </div>
@@ -213,3 +217,13 @@ onMounted(() => {
   fetchFavorites()
 })
 </script>
+
+<style scoped>
+.heart-btn {
+  opacity: 0;
+}
+
+.comic-wrapper:hover .heart-btn {
+  opacity: 1;
+}
+</style>
