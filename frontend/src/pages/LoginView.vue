@@ -43,7 +43,6 @@
           <div class="space-y-2">
             <div class="flex justify-between items-center">
               <label for="password" class="text-sm font-medium text-gray-700">Password</label>
-              <button type="button" class="text-sm font-medium text-[#7C3AED] hover:underline">Lupa Password?</button>
             </div>
             <input 
               v-model="form.password" 
@@ -96,7 +95,7 @@
           Ribuan cerita.<br />Satu tempat nyaman.
         </h2>
         <p class="text-gray-500">
-          Webtoon premium pilihan editor dan disukai pembaca di seluruh dunia.
+          Komik premium pilihan editor dan disukai pembaca di seluruh dunia.
         </p>
       </div>
       <div class="absolute inset-0 grid grid-cols-3 gap-3 p-8 opacity-30 rotate-6 scale-110 pointer-events-none">

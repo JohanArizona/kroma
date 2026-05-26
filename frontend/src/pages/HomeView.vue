@@ -58,7 +58,7 @@
             Ribuan cerita.<br />Satu tempat nyaman.
           </h1>
           <p class="text-white/75 text-sm leading-relaxed mb-6">
-            Temukan webtoon & komik terbaik pilihan editor. Dari action, romance, hingga fantasy — semua ada di sini.
+            Temukan komik terbaik pilihan editor. Dari action, romance, hingga fantasy, semua ada di sini.
           </p>
 
           <!-- Belum login -->
@@ -75,11 +75,6 @@
               @click="scrollToGenre"
               class="px-5 py-2.5 bg-white text-[#7C3AED] text-sm font-semibold rounded-lg hover:bg-gray-100 transition">
               Jelajahi Sekarang
-            </button>
-            <button
-              @click="logout"
-              class="px-5 py-2.5 bg-white/15 text-white text-sm font-semibold rounded-lg hover:bg-white/25 transition border border-white/20">
-              Keluar
             </button>
           </div>
         </div>
