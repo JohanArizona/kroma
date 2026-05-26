@@ -97,17 +97,8 @@
             {{ isLoading ? 'Sedang Membuat Akun...' : 'Daftar' }}
           </Button>
           
-          <!-- Divider -->
-          <div class="flex items-center gap-3 text-xs text-gray-400">
-            <div class="flex-1 h-px bg-gray-200"></div> 
-            ATAU 
-            <div class="flex-1 h-px bg-gray-200"></div>
-          </div>
-          
-          <!-- Google Button Menggunakan Komponen UI -->
-          <Button type="button" variant="outline" class="w-full h-11">
-            Lanjutkan dengan Google
-          </Button>
+         
+         
         </form>
         
         <!-- Footer -->
