@@ -13,7 +13,13 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable, HasUuids; 
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'avatar_url',
+        'role',
+    ];
 
     protected $hidden = [
         'password',
@@ -36,5 +42,41 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    // Relationships
+    public function createdComics()
+    {
+        return $this->hasMany(Comic::class, 'created_by');
+    }
+
+    public function updatedComics()
+    {
+        return $this->hasMany(Comic::class, 'updated_by');
+    }
+
+    public function createdChapters()
+    {
+        return $this->hasMany(Chapter::class, 'created_by');
+    }
+
+    public function updatedChapters()
+    {
+        return $this->hasMany(Chapter::class, 'updated_by');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    public function readingHistories()
+    {
+        return $this->hasMany(ReadingHistory::class);
     }
 }

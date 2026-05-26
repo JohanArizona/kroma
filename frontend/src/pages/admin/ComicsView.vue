@@ -301,7 +301,7 @@ const filteredComics = computed(() => {
 const fetchComics = async () => {
   isLoading.value = true
   try {
-    const res = await fetch('http://localhost:8000/api/v1/comics', {
+    const res = await fetch(`http://localhost:8000/api/v1/search?query=${encodeURIComponent(searchQuery.value)}`, {
       headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
     })
     const data = await res.json()

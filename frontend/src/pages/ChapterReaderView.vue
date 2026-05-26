@@ -53,6 +53,109 @@
       />
 
       <!-- End of chapter -->
+       <div
+class="bg-[#181818] p-5"
+>
+
+<h2
+class="text-white text-lg font-bold mb-4"
+>
+
+Komentar
+({{ comments.length }})
+
+</h2>
+
+<div
+v-if="user"
+class="mb-5"
+>
+
+<textarea
+
+v-model="commentInput"
+
+rows="3"
+
+placeholder="Tulis komentar..."
+
+class="w-full rounded-lg bg-[#222] text-white p-3 border border-white/10"
+
+></textarea>
+
+<button
+
+@click="submitComment"
+
+:disabled="commentLoading"
+
+class="mt-3 px-5 py-2 bg-[#7C3AED] rounded-lg text-white"
+
+>
+
+{{ commentLoading
+? 'Mengirim...'
+: 'Kirim' }}
+
+</button>
+
+</div>
+
+<div
+v-else
+class="text-gray-400 mb-5"
+>
+
+Login untuk berkomentar
+
+</div>
+
+<div
+class="space-y-3"
+>
+
+<div
+
+v-for="c in comments"
+
+:key="c.id"
+
+class="bg-[#222] rounded-lg p-3"
+
+>
+
+<p
+class="text-[#A78BFA] text-sm font-semibold"
+>
+
+{{ c.user?.name }}
+
+</p>
+
+<p
+class="text-white text-sm mt-1"
+>
+
+{{ c.content }}
+
+</p>
+
+</div>
+
+<div
+v-if="comments.length===0"
+
+class="text-gray-500"
+
+>
+
+Belum ada komentar
+
+</div>
+
+</div>
+
+</div>
       <div class="py-10 text-center border-t border-white/10">
         <p class="text-gray-400 text-sm mb-4">— Selesai —</p>
         <button
@@ -82,6 +185,13 @@ const token = localStorage.getItem('kroma_token')
 const pages = ref([])
 const isLoading = ref(true)
 const error = ref('')
+const comments = ref([])
+const commentInput = ref('')
+const commentLoading = ref(false)
+
+const user = JSON.parse(
+localStorage.getItem('kroma_user') || 'null'
+)
 
 const getMediaUrl = (path) => {
   if (!path) return ''
@@ -107,9 +217,113 @@ const fetchPages = async () => {
   }
 }
 
-onMounted(() => {
-  fetchPages()
-  // Scroll ke atas saat masuk reader
-  window.scrollTo(0, 0)
+const authHeaders = () => ({
+Accept:'application/json',
+Authorization:`Bearer ${token ?? ''}`
+})
+
+const fetchComments = async () => {
+
+try{
+
+const res=
+await fetch(
+`http://localhost:8000/api/v1/chapters/${chapterId}/comments`,
+{
+headers:authHeaders()
+}
+)
+
+const data=
+await res.json()
+
+if(res.ok){
+
+comments.value=
+data.data || []
+
+}
+
+}
+catch(err){
+
+console.log(
+'Komentar gagal dimuat',
+err
+)
+
+}
+
+}
+
+const submitComment = async () => {
+
+if(
+!commentInput.value.trim()
+)return
+
+commentLoading.value=true
+
+try{
+
+const res=
+await fetch(
+`http://localhost:8000/api/v1/chapters/${chapterId}/comments`,
+{
+
+method:'POST',
+
+headers:{
+...authHeaders(),
+'Content-Type':'application/json'
+},
+
+body:JSON.stringify({
+
+content:
+commentInput.value
+
+})
+
+}
+
+)
+
+const data=
+await res.json()
+
+if(!res.ok)
+throw new Error(
+data.message
+)
+
+commentInput.value=''
+
+await fetchComments()
+
+}
+catch(err){
+
+alert(
+err.message
+)
+
+}
+finally{
+
+commentLoading.value=false
+
+}
+
+}
+
+onMounted(async()=>{
+
+await fetchPages()
+
+await fetchComments()
+
+window.scrollTo(0,0)
+
 })
 </script>

@@ -51,7 +51,11 @@
                   @click="triggerFileInput"
                   :disabled="isUploading"
                   class="absolute bottom-1 right-1 w-9 h-9 rounded-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white flex items-center justify-center border-[3px] border-white shadow-sm transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-                  title="Ubah Foto"
+                  :title="
+isUploading
+?'Mengunggah...'
+:'Ubah Foto'
+"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                 </button>
@@ -243,6 +247,8 @@ const updateProfileName = async () => {
     
     showAlert('success', 'Nama berhasil diperbarui!')
     await fetchProfile()
+    user.value.avatar_url=
+'default-avatar.png'
   } catch (error) {
     showAlert('error', error.message)
   } finally {
@@ -256,38 +262,125 @@ const triggerFileInput = () => {
 }
 
 const uploadAvatar = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
 
-  alert.show = false
-  isUploading.value = true
-  const token = localStorage.getItem('kroma_token')
-  
-  const formData = new FormData()
-  formData.append('_method', 'PATCH')
-  formData.append('avatar', file)
+const file = event.target.files[0]
 
-  try {
-    const res = await fetch('http://localhost:8000/api/v1/profile/avatar', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json'
-      },
-      body: formData
-    })
-    const data = await res.json()
+if (!file) return
 
-    if (!res.ok) throw new Error(data.message)
 
-    showAlert('success', 'Foto profil berhasil diunggah!')
-    await fetchProfile()
-  } catch (error) {
-    showAlert('error', error.message || 'Gagal mengunggah gambar. Pastikan ukurannya di bawah 2MB.')
-  } finally {
-    isUploading.value = false
-    event.target.value = '' 
-  }
+// VALIDASI FORMAT
+const allowed = [
+'image/jpeg',
+'image/png',
+'image/webp'
+]
+
+if (!allowed.includes(file.type)) {
+
+showAlert(
+'error',
+'Format harus JPG, PNG, atau WEBP'
+)
+
+event.target.value=''
+
+return
+
+}
+
+
+// VALIDASI UKURAN
+if (file.size > 2 * 1024 * 1024) {
+
+showAlert(
+'error',
+'Ukuran maksimal 2MB'
+)
+
+event.target.value=''
+
+return
+
+}
+
+
+alert.show = false
+isUploading.value = true
+
+const token =
+localStorage.getItem(
+'kroma_token'
+)
+
+const formData =
+new FormData()
+
+formData.append(
+'_method',
+'PATCH'
+)
+
+formData.append(
+'avatar',
+file
+)
+
+try {
+
+const res =
+await fetch(
+'http://localhost:8000/api/v1/profile/avatar',
+{
+method:'POST',
+
+headers:{
+Authorization:
+`Bearer ${token}`,
+
+Accept:
+'application/json'
+},
+
+body:
+formData
+
+}
+)
+
+const data =
+await res.json()
+
+if (!res.ok)
+throw new Error(
+data.message
+)
+
+showAlert(
+'success',
+'Foto profil berhasil diunggah!'
+)
+
+await fetchProfile()
+
+}
+catch(error){
+
+showAlert(
+'error',
+error.message
+||
+'Gagal upload avatar'
+)
+
+}
+finally{
+
+isUploading.value=false
+
+event.target.value=''
+
+}
+
 }
 
 // 4. DELETE AVATAR (Dieksekusi dari Modal)
@@ -312,6 +405,11 @@ const executeDeleteAvatar = async () => {
 
     showAlert('success', 'Foto profil berhasil dihapus!')
     await fetchProfile() 
+    window.dispatchEvent(
+new Event(
+'user-updated'
+)
+)
   } catch (error) {
     showAlert('error', error.message)
   } finally {

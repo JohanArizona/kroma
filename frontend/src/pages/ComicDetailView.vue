@@ -137,6 +137,7 @@
             </button>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -166,6 +167,11 @@ const isLoadingChapters = ref(true)
 const error = ref('')
 const isFavorite = ref(false)
 const favLoading = ref(false)
+const comments = ref([])
+const newComment = ref('')
+const commentLoading = ref(false)
+const editingId = ref(null)
+const editContent = ref('')
 
 const getMediaUrl = (path) => {
   if (!path) return ''
@@ -256,6 +262,212 @@ const toggleFavorite = async () => {
   }
 }
 
+const fetchComments = async () => {
+
+if(!chapters.value.length)
+return
+
+
+try{
+
+const res=
+await fetch(
+`http://localhost:8000/api/v1/chapters/${chapters.value[0].id}/comments`,
+{
+headers:
+authHeaders()
+}
+)
+
+const data=
+await res.json()
+
+if(res.ok){
+
+comments.value=
+data.data
+||
+[]
+
+}
+
+}
+catch(err){
+
+console.log(err)
+
+}
+
+}
+
+
+
+const addComment=
+async()=>{
+
+if(
+!newComment.value.trim()
+)
+return
+
+
+commentLoading.value=true
+
+
+try{
+
+await fetch(
+
+`http://localhost:8000/api/v1/chapters/${chapters.value[0].id}/comments`,
+
+{
+
+method:'POST',
+
+headers:{
+
+...authHeaders(),
+
+'Content-Type':
+'application/json'
+
+},
+
+body:
+JSON.stringify({
+
+content:
+newComment.value
+
+})
+
+}
+
+)
+
+newComment.value=''
+
+fetchComments()
+
+}
+catch(err){
+
+console.log(err)
+
+}
+finally{
+
+commentLoading.value=false
+
+}
+
+}
+
+
+
+const startEdit=
+(comment)=>{
+
+editingId.value=
+comment.id
+
+editContent.value=
+comment.content
+
+}
+
+
+
+const updateComment=
+async(id)=>{
+
+try{
+
+await fetch(
+
+`http://localhost:8000/api/v1/comments/${id}`,
+
+{
+
+method:'PATCH',
+
+headers:{
+
+...authHeaders(),
+
+'Content-Type':
+'application/json'
+
+},
+
+body:
+JSON.stringify({
+
+content:
+editContent.value
+
+})
+
+}
+
+)
+
+editingId.value=
+null
+
+fetchComments()
+
+}
+catch(err){
+
+console.log(err)
+
+}
+
+}
+
+
+
+const deleteComment=
+async(id)=>{
+
+if(
+!confirm(
+'Hapus komentar?'
+)
+)
+return
+
+
+try{
+
+await fetch(
+
+`http://localhost:8000/api/v1/comments/${id}`,
+
+{
+
+method:
+'DELETE',
+
+headers:
+authHeaders()
+
+}
+
+)
+
+fetchComments()
+
+}
+catch(err){
+
+console.log(err)
+
+}
+
+}
+
 // Navigasi ke reader
 const readChapter = (chapter) => {
   router.push({
@@ -268,9 +480,10 @@ const readChapter = (chapter) => {
   })
 }
 
-onMounted(() => {
-  fetchComic()
-  fetchChapters()
-  checkFavorite()
+onMounted(async()=>{
+await fetchComic()
+await fetchChapters()
+await checkFavorite()
+fetchComments()
 })
 </script>

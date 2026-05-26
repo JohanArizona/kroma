@@ -65,10 +65,11 @@
         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
       >
         <div
-          v-for="item in favorites"
-          :key="item.favorite_id"
-          class="relative group"
-        >
+v-for="item in favorites"
+:key="item.favorite_id"
+class="relative group cursor-pointer"
+@click="goToComic(item.comic?.id)"
+>
           <div class="relative aspect-[2/3] rounded-md overflow-hidden border border-gray-200 mb-2 bg-gray-100">
             <img
               :src="getCoverUrl(item.comic?.cover_url)"
@@ -80,7 +81,7 @@
             <!-- Overlay hapus: muncul saat hover -->
             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
               <button
-                @click="confirmRemove(item)"
+                @click.stop="confirmRemove(item)"
                 class="px-3 py-1.5 bg-white text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 transition-colors shadow"
               >
                 Hapus
@@ -194,6 +195,14 @@ const fetchFavorites = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const goToComic = (comicId) => {
+
+if (!comicId) return
+
+router.push(`/comics/${comicId}`)
+
 }
 
 const confirmRemove = (item) => {
