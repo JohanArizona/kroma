@@ -36,10 +36,129 @@
     </div>
 
     <!-- Kosong -->
-    <div v-else-if="pages.length === 0" class="max-w-2xl mx-auto px-4 py-16 text-center">
-      <p class="text-gray-400 text-sm">Episode ini belum memiliki halaman.</p>
-      <button @click="router.back()" class="mt-3 text-[#7C3AED] text-sm hover:underline">← Kembali</button>
+<div v-else-if="pages.length === 0" class="max-w-2xl mx-auto">
+
+  <div class="px-4 py-16 text-center">
+    <p class="text-gray-400 text-sm">
+      Episode ini belum memiliki halaman.
+    </p>
+
+    <button
+      @click="router.back()"
+      class="mt-3 text-[#7C3AED] text-sm hover:underline"
+    >
+      ← Kembali
+    </button>
+  </div>
+
+  <!-- KOMENTAR -->
+  <div class="bg-[#181818] p-5">
+
+    <h2 class="text-white text-lg font-bold mb-4">
+      Komentar ({{ comments.length }})
+    </h2>
+
+    <div v-if="user" class="mb-5">
+
+      <textarea
+        v-model="commentInput"
+        rows="3"
+        placeholder="Tulis komentar..."
+        class="w-full rounded-lg bg-[#222] text-white p-3 border border-white/10"
+      ></textarea>
+
+      <button
+        @click="submitComment"
+        :disabled="commentLoading"
+        class="mt-3 px-5 py-2 bg-[#7C3AED] rounded-lg text-white"
+      >
+        {{ commentLoading ? 'Mengirim...' : 'Kirim' }}
+      </button>
+
     </div>
+
+    <div v-else class="text-gray-400 mb-5">
+      Login untuk berkomentar
+    </div>
+
+    <div class="space-y-3">
+
+  <div
+    v-for="c in comments"
+    :key="c.id"
+    class="bg-[#222] rounded-lg p-3"
+  >
+
+    <div class="flex justify-between items-start">
+
+      <div class="flex-1">
+
+        <p class="text-[#A78BFA] text-sm font-semibold">
+          {{ c.user?.name }}
+        </p>
+
+        <div v-if="editingId === c.id">
+
+          <textarea
+            v-model="editContent"
+            class="mt-2 w-full rounded bg-[#333] text-white p-2"
+          ></textarea>
+
+          <button
+            @click="updateComment(c.id)"
+            class="mt-2 text-green-400 text-sm"
+          >
+            Simpan
+          </button>
+
+        </div>
+
+        <p
+          v-else
+          class="text-white text-sm mt-1"
+        >
+          {{ c.content }}
+        </p>
+
+      </div>
+
+      <div
+        v-if="c.user_id === user?.id"
+        class="ml-4 flex gap-2"
+      >
+
+        <button
+          @click="startEdit(c)"
+          class="text-[#A78BFA] text-sm"
+        >
+          Edit
+        </button>
+
+        <button
+          @click="deleteComment(c.id)"
+          class="text-red-400 text-sm"
+        >
+          Hapus
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div
+    v-if="comments.length === 0"
+    class="text-gray-500"
+  >
+    Belum ada komentar
+  </div>
+
+</div>
+
+  </div>
+
+</div>
 
     <!-- Pages — vertical scroll webtoon style -->
     <div v-else class="max-w-2xl mx-auto">
@@ -188,6 +307,9 @@ const error = ref('')
 const comments = ref([])
 const commentInput = ref('')
 const commentLoading = ref(false)
+const editingId = ref(null)
+const editContent = ref('')
+
 
 const user = JSON.parse(
 localStorage.getItem('kroma_user') || 'null'
@@ -316,6 +438,79 @@ commentLoading.value=false
 }
 
 }
+
+const startEdit = (comment) => {
+
+  editingId.value = comment.id
+  editContent.value = comment.content
+
+}
+
+const updateComment = async (id) => {
+
+  try {
+
+    const res = await fetch(
+      `http://localhost:8000/api/v1/comments/${id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          ...authHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: editContent.value
+        })
+      }
+    )
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      throw new Error(data.message)
+    }
+
+    editingId.value = null
+    await fetchComments()
+
+  } catch (err) {
+
+    alert(err.message)
+
+  }
+
+}
+
+const deleteComment = async (id) => {
+
+  if (!confirm('Hapus komentar ini?')) return
+
+  try {
+
+    const res = await fetch(
+      `http://localhost:8000/api/v1/comments/${id}`,
+      {
+        method: 'DELETE',
+        headers: authHeaders()
+      }
+    )
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      throw new Error(data.message)
+    }
+
+    await fetchComments()
+
+  } catch (err) {
+
+    alert(err.message)
+
+  }
+
+}
+
 
 onMounted(async()=>{
 
