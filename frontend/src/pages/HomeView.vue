@@ -162,7 +162,6 @@
               @click="handleComicClick(comic)"
             />
 
-            <!-- Heart button tanpa animasi loading -->
             <button
               v-if="user"
               @click.stop="toggleFavorite(comic)"
@@ -241,7 +240,6 @@
               @click="handleComicClick(comic)"
             />
 
-            <!-- Heart button tanpa animasi loading -->
             <button
               v-if="user"
               @click.stop="toggleFavorite(comic)"
@@ -327,7 +325,6 @@ const currentPage = ref(1)
 const lastPage = ref(1)
 
 const favoriteIds = ref(new Set())
-const loadingFavorites = ref(new Set())
 
 const getCoverUrl = (path) => {
   if (!path) return ''
@@ -434,8 +431,6 @@ const toggleFavorite = async (comic) => {
   const comicId = comic.id
   const isAlreadyFav = favoriteIds.value.has(comicId)
 
-  loadingFavorites.value = new Set([...loadingFavorites.value, comicId])
-
   const optimisticSet = new Set(favoriteIds.value)
   if (isAlreadyFav) {
     optimisticSet.delete(comicId)
@@ -481,10 +476,6 @@ const toggleFavorite = async (comic) => {
     favoriteIds.value = rollbackSet
     triggerToast(error.message || 'Gagal mengubah favorit.', 'error')
     console.error('Toggle favorit gagal:', error.message)
-  } finally {
-    const remainingLoading = new Set(loadingFavorites.value)
-    remainingLoading.delete(comicId)
-    loadingFavorites.value = remainingLoading
   }
 }
 

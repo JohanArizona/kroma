@@ -41,9 +41,7 @@
           
           <!-- Password -->
           <div class="space-y-2">
-            <div class="flex justify-between items-center">
               <label for="password" class="text-sm font-medium text-gray-700">Password</label>
-            </div>
             <input 
               v-model="form.password" 
               id="password" 
@@ -54,14 +52,8 @@
             />
           </div>
           
-          <!-- Remember -->
-          <div class="flex items-center gap-2">
-            <input type="checkbox" id="remember" class="rounded border-gray-300 text-[#7C3AED] focus:ring-[#7C3AED]" />
-            <label for="remember" class="text-sm text-gray-600 cursor-pointer">Ingat saya selama 30 hari</label>
-          </div>
-          
           <!-- Button Login Menggunakan Komponen UI -->
-          <Button type="submit" :disabled="isLoading" class="w-full h-11">
+          <Button type="submit" :disabled="isLoading" class="w-full h-11 mt-2">
             {{ isLoading ? 'Sedang Masuk...' : 'Masuk' }}
           </Button>
           
